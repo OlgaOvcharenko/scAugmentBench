@@ -1,0 +1,13 @@
+model: VICReg
+out_dim: 12
+hidden_dim: 128
+backbone_dropout: 0
+reg_lambda: 1.0
+reg_alpha: 1.0
+reg_beta: 1.0
+
+training:
+  max_epochs: 100
+  batch_size: 256
+  lr: 0.0001
+  weight_decay: 0.000001

@@ -1,0 +1,13 @@
+model: SimSiam
+out_dim: 12
+hidden_dim: 128
+hidden_dim_2: 6
+backbone_dropout: 0
+
+training:
+  max_epochs: 100
+  batch_size: 256
+  lr: 0.0001
+  weight_decay: 0.000001
+
+# hidden_dim_2
