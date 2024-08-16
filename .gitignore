@@ -1,5 +1,4 @@
 __pycache__
-architecture-ablation
-dimension-ablation
+*-ablation*
 lightning_logs
 debug.ipynb
