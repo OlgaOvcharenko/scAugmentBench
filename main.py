@@ -18,10 +18,13 @@ from data.dataset import OurDataset
 from data.augmentations import * #get_transforms, augmentations
 from data.graph_augmentation_prep import * # builders for mnn and bbknn augmentation.
 
-import random
 import torch
 import torch.backends.cudnn as cudnn
+from torchvision.transforms import Compose
 import numpy as np
+import random
+import lightning as pl
+
 
 _LOGGER = logging.getLogger(__name__)
 _celltype_key = "CellType" #cfg["data"]["celltype_key"]
@@ -30,15 +33,33 @@ _batch_key = "batchlb" #cfg["data"]["batch_key"]
 
 def load_data(config) -> sc.AnnData:
     # config["augmentation"]
-    _LOGGER.info("Loading data...")
-    print(config)
     data_path = config["data"]["data_path"]
-    augment_list = config["augmentation"] # using config["augmentation"]
-    print(augment_list)
-    return None, None
+    _LOGGER.info(f"Loading data from {data_path}")
+
+    augmentation_config = config["augmentation"] # using config["augmentation"]
+    
+    pm = PreProcessingModule(data_path, select_hvg=config["data"]["n_hvgs"], scale=False)
+    #prepare_bbknn()
+
+    augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X)
+    transforms = Compose(augmentation_list)
+    
+    train_dataset = OurDataset(adata=pm.adata,
+                               transforms=transforms, 
+                               valid_ids=None
+                               )
+    val_dataset = OurDataset(adata=pm.adata,
+                             transforms=None,
+                             valid_ids=None
+                             )
+    
+    _LOGGER.info("Finished loading data.....")
+    
+    return train_dataset, val_dataset, pm.adata
 
 
 def reset_random_seeds(seed):
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     random.seed(seed)
     #os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     np.random.seed(seed)
@@ -47,6 +68,7 @@ def reset_random_seeds(seed):
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)
     cudnn.deterministic = True
+    os.environ["PYTHONHASHSEED"] = str(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
     _LOGGER.info(f"Set random seed to {seed}")    
 
@@ -65,7 +87,6 @@ def flatten(dictionary, parent_key="", separator="_"):
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
     # Set up logging
-    print(cfg)
     """wandb.init(
         project=cfg.logging.project,
         reinit=True,
@@ -81,30 +102,32 @@ def main(cfg: DictConfig):
     random_seed = cfg["random_seed"]
     reset_random_seeds(random_seed)
     
-    train_dataset, val_dataset = load_data(cfg)
-    print(results_dir)
-    with open(f"{results_dir}/test.txt", 'w') as f:
-        f.write("AA")
+    train_dataset, val_dataset, ad = load_data(cfg)
 
-    """_LOGGER.info("Start training model")
+    _LOGGER.info(f"Start training ({cfg['model']['model']})")
+    _LOGGER.info(f"CUDA available: {torch.cuda.is_available()}")
+
     start = time.time()
-    model = train_model(
-        train_dataset,
-        model_config=cfg["model"],
-        batch_key=_batch_key,
-        celltype_key=_celltype_key,
-        random_seed=random_seed,
-    )
-    run_time = time.time() - start"""
-
-    print("evaluation to be implemented.")
-    """_LOGGER.info("Evaluate model")
-    results = evaluate_model(val_dataset,
-                                     model)
-    _LOGGER.info("logging results.")
-    _LOGGER.info(results)
-    #wandb.log(results)
-    results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)"""
+    model = train_model(dataset=train_dataset, 
+                        model_config=cfg["model"],
+                        random_seed=random_seed, 
+                        batch_size=256,
+                        num_workers=14,
+                        n_epochs=200,
+                        logger=_LOGGER)
+    run_time = time.time() - start
+    _LOGGER.info(f"Training of the model took {round(run_time, 3)} seconds.")
+    
+    results, embedding = evaluate_model(model=model,
+                                        dataset=val_dataset,
+                                        adata=ad,
+                                        batch_size=256,
+                                        num_workers=14,
+                                        )
+    #_LOGGER.info(f"Results:\n{results}")
+    
+    results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)
+    np.savez_compressed(results_dir.joinpath("embedding.npz"), embedding)
 
 if __name__ == "__main__":
     main()

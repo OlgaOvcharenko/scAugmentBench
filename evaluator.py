@@ -1,6 +1,25 @@
+import os
 import torch
 import numpy as np
+import pandas as pd
+from scib_metrics.benchmark import Benchmarker, BioConservation, BatchCorrection
+import scanpy as sc
+from sklearn.preprocessing import MinMaxScaler
 
+
+
+_BIO_METRICS = BioConservation(isolated_labels=True, 
+                               nmi_ari_cluster_labels_leiden=True, 
+                               nmi_ari_cluster_labels_kmeans=False, 
+                               silhouette_label=True, 
+                               clisi_knn=True
+                               )
+_BATCH_METRICS = BatchCorrection(graph_connectivity=True, 
+                                 kbet_per_label=True, 
+                                 ilisi_knn=True, 
+                                 pcr_comparison=True, 
+                                 silhouette_batch=True
+                                 )
 
 def infer_embedding(model, val_loader):
     outs = []
@@ -9,12 +28,12 @@ def infer_embedding(model, val_loader):
             outs.append(model.predict(x[0]))
 
     embedding = torch.concat(outs)
-    print(f"Embedding-Shape: {embedding.shape}")
     embedding = np.array(embedding)
     return embedding
 
 
-def evaluate_model(model, dataset, batch_size, num_workers):
+def evaluate_model(model, adata, dataset, batch_size, num_workers,
+                   batch_key="batchlb", cell_type_label="CellType",):
     val_loader = torch.utils.data.DataLoader(
                     dataset,
                     batch_size=batch_size,
@@ -22,6 +41,84 @@ def evaluate_model(model, dataset, batch_size, num_workers):
                     shuffle=False,
                     drop_last=False)
     embedding = infer_embedding(model, val_loader)
-    em = EvaluationModule(db, c.adata, model_indices=range(len(db.configs)))
-    em.run_evaluation()
-    return em.display_table()
+    adata.obsm["Embedding"] = embedding
+    bm = Benchmarker(
+                adata,
+                batch_key=batch_key,
+                label_key=cell_type_label,
+                embedding_obsm_keys=["Embedding"],
+                bio_conservation_metrics=_BIO_METRICS,
+                batch_correction_metrics=_BATCH_METRICS,
+                n_jobs=num_workers,
+            )
+    bm.benchmark()
+    a = bm.get_results(False, True)
+    results = a[:1]
+
+    return results.astype(float).round(4), embedding
+
+
+def plot_umap(adata, embedding, results_dir):
+    adata.obsm['Embedding'] = embedding
+    sc.pp.neighbors(adata, use_rep="Embedding")
+    sc.tl.umap(adata)
+    return sc.pl.umap(adata, show=False, color=['CellType', 'batchlb'],)
+
+
+def collect_runs(project_root = "/local/home/tomap/scAugmentBench", dirname = "architecture-ablation",
+                 dname = "ImmHuman", n_runs = 5):
+    model_names = os.listdir(os.path.join(project_root, dirname, dname))
+    
+    for mname in model_names:
+        tmp = os.path.join(project_root, dirname, dname, mname)
+        
+        if os.path.exists(os.path.join(tmp, "mean_result.csv")):
+            os.remove(os.path.join(tmp, "mean_result.csv"))
+            os.remove(os.path.join(tmp, "std_result.csv"))
+        
+        assert len(os.listdir(tmp))==n_runs, f"Number of runs does not match number of seeds @ {tmp}!"
+        
+        metrics = [pd.read_csv(os.path.join(tmp, seed, "evaluation_metrics.csv")) for seed in os.listdir(tmp)]
+        mean = pd.DataFrame(pd.concat(metrics).mean(0).round(4), columns=[mname]).T
+        std = pd.DataFrame(pd.concat(metrics).std(0).round(4), columns=[mname]).T
+        mean.to_csv(os.path.join(tmp, "mean_result.csv"))
+        std.to_csv(os.path.join(tmp, "std_result.csv"))
+
+
+def unify_table(project_root = "/local/home/tomap/scAugmentBench", dirname = "architecture-ablation",
+                dname = "ImmHuman", n_runs = 5):
+    model_names = os.listdir(os.path.join(project_root, dirname, dname))
+    model_means = []
+    model_stds = []
+
+    for mname in model_names:
+        tmp = os.path.join(project_root, dirname, dname, mname)
+        assert os.path.exists(os.path.join(tmp, "mean_result.csv")), f"There is no file for the mean-metrics @ {tmp}."
+        model_means.append(pd.read_csv(os.path.join(tmp, "mean_result.csv"), index_col=0))
+        model_stds.append(pd.read_csv(os.path.join(tmp, "std_result.csv"), index_col=0))
+    
+    means = pd.concat(model_means)
+    stds = pd.concat(model_stds)
+    
+    return means, stds
+
+
+def scale_table(df):
+    biometrics = np.array(['Isolated labels', 'Leiden', 'KMeans', 'Silhouette label', 'cLISI'])
+    batchmetrics = np.array(['Silhouette batch', 'iLISI', 'KBET', 'Graph connectivity', 'PCR comparison'])
+
+    biometrics = list(biometrics[list(_BIO_METRICS.__dict__.values())])
+    tmp = biometrics[1]
+    biometrics[1] = tmp + " ARI"
+    biometrics.append(tmp + " NMI")
+    batchmetrics = list(batchmetrics[list(_BATCH_METRICS.__dict__.values())])
+
+    scaled= pd.DataFrame(MinMaxScaler().fit_transform(df), columns=df.columns, index=df.index)
+    scaled['Batch correction'] = scaled[batchmetrics].mean(1)
+    scaled['Bio conservation'] = scaled[biometrics].mean(1)
+    scaled['Total'] = 0.6 * scaled['Bio conservation'] + 0.4 * scaled['Batch correction']
+    df['Batch correction'] = scaled['Batch correction'].copy()
+    df['Bio conservation'] = scaled['Bio conservation'].copy()
+    df['Total'] = scaled['Total'].copy()
+
+    return df

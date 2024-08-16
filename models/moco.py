@@ -18,7 +18,7 @@ import lightning as pl
 
 
 class MoCo(pl.LightningModule):
-    def __init__(self, in_dim, hidden_dim, out_dim, memory_bank_size, max_epochs=50):
+    def __init__(self, in_dim, hidden_dim, out_dim, memory_bank_size, max_epochs=200, **kwargs):
         super().__init__()
         self.max_epochs = max_epochs
         self.backbone = get_backbone(in_dim, hidden_dim)

@@ -19,7 +19,7 @@ from models.model_utils import get_backbone
 
 class DINO(pl.LightningModule):
     
-    def __init__(self, in_dim, hidden_dim, out_dim, bsize):
+    def __init__(self, in_dim, hidden_dim, out_dim, bsize, **kwargs):
         super().__init__()
         self.student_backbone = get_backbone(in_dim, hidden_dim)
         #bottleneck = hidden_dim//4 # TODO: Should this be its own parameter?

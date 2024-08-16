@@ -13,7 +13,7 @@ import lightning as pl
 
 class VICReg(pl.LightningModule):
     
-    def __init__(self, in_dim, hidden_dim, out_dim, reg_lambda=1.0, reg_alpha=0.3, reg_beta=1.0):
+    def __init__(self, in_dim, hidden_dim, out_dim, reg_lambda=1.0, reg_alpha=0.3, reg_beta=1.0, **kwargs):
         super().__init__()
         self.backbone = get_backbone(in_dim, hidden_dim)
         self.projection_head = VICRegProjectionHead(

@@ -50,7 +50,8 @@ class BYOL(nn.Module, _MomentumEncoderMixin):
                  num_ftrs: int = 512,
                  hidden_dim: int = 4096,
                  out_dim: int = 256,
-                 m: float = 0.999):
+                 m: float = 0.999,
+                 **kwargs):
 
         super(BYOL, self).__init__()
 
@@ -156,7 +157,7 @@ class BYOL(nn.Module, _MomentumEncoderMixin):
 
 class BYOLModule(pl.LightningModule):
 
-    def __init__(self, in_dim, hidden_dim, out_dim, batch_size):
+    def __init__(self, in_dim, hidden_dim, out_dim, batch_size, **kwargs):
         # create the BYOL-backbone
         super().__init__()
         self.backbone = get_backbone(in_dim, hidden_dim)

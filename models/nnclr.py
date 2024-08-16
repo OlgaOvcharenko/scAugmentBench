@@ -14,7 +14,7 @@ import lightning as pl
 
 class NNCLR(pl.LightningModule):
 
-    def __init__(self, in_dim, hidden_dim, hidden_dim_2, out_dim, memory_bank_size=4096):
+    def __init__(self, in_dim, hidden_dim, hidden_dim_2, out_dim, memory_bank_size=4096, **kwargs):
         super().__init__()
         self.backbone = get_backbone(in_dim, hidden_dim)
         self.projection_head = NNCLRProjectionHead(hidden_dim, hidden_dim, out_dim)

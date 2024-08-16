@@ -11,6 +11,17 @@ import torch.nn as nn
 from torch import bernoulli, rand, normal # rand is the uniform distribution [0, 1) 
 
 
+def get_augmentation_list(config, X):
+    # TODO: Implement possibility for reordering of augmentations.
+    """return [Mask_Augment(mask_percentage=config['mask']['mask_percentage'], apply_prob=config['mask']['apply_prob']), 
+            Gauss_Augment(noise_percentage=config['gauss']['noise_percentage'], sigma=config['gauss'], apply_prob=config['gauss']['apply_prob']),
+            InnerSwap_Augment(swap_percentage=config['innerswap']['swap_percentage'], apply_prob=config['innerswap']['apply_prob']),
+            CrossOver_Augment(X=X, cross_percentage=config['crossover'], apply_prob=config['crossover']['apply_prob'],)]"""
+    return [Mask_Augment(**config['mask']), 
+            Gauss_Augment(**config['gauss']),
+            InnerSwap_Augment(**config['innerswap']),
+            CrossOver_Augment(X=X, **config['crossover'])]
+
 def get_transforms(transform_list):
     return Compose(transform_list)
 

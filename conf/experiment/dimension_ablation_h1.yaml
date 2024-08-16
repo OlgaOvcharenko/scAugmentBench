@@ -2,13 +2,14 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 25)
-      +model: nnclr, barlowtwins, byol, moco, vicreg, simclr, simsiam
+      random_seed: range(20, 21)
+      +model: barlowtwins, byol, moco, vicreg, simclr
+      +model.hidden_dim: [256, 512, 768, 1024]
       +data: pbmc_2_donor,immune
       +augmentation: clear_pipeline
       logging.project: architecture-ablation_vol1
   job:
     name: ${model.model}-${data.dname}  # Set the job name to the model name
   sweep:
-    dir: architecture-ablation/
-    subdir: ${data.dname}/${model.model}/${random_seed}
+    dir: dimension-ablation/
+    subdir: ${data.dname}/${model.model}/${model.hidden_dim}/${random_seed}

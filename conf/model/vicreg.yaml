@@ -1,3 +1,6 @@
+defaults:
+  - model.yaml
+
 model: VICReg
 out_dim: 12
 hidden_dim: 128
