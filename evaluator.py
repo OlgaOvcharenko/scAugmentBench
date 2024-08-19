@@ -122,3 +122,43 @@ def scale_table(df):
     df['Total'] = scaled['Total'].copy()
 
     return df
+
+
+def get_best_params(project_root = "/local/home/tomap/scAugmentBench", dirname = "architecture-ablation",
+                 dname = "ImmHuman", n_runs = 5):
+    root = os.path.join(project_root, dirname, dname)
+    model_names = os.listdir(root)
+    if os.path.exists(os.path.join(root, "final_collected.csv")):
+            os.remove(os.path.join(root, "final_collected.csv"))
+        
+    for mname in model_names:
+        tmp = os.path.join(project_root, dirname, dname, mname)
+        
+        if os.path.exists(os.path.join(tmp, "mean_result_collected.csv")):
+            os.remove(os.path.join(tmp, "mean_result_collected.csv"))
+                
+        num_param_configs = len(os.listdir(tmp))
+        n_seeds = [len(os.listdir(os.path.join(tmp, param_config))) for param_config in os.listdir(os.path.join(tmp))]
+        print(f"Min num seeds: {min(n_seeds)}.\nMax num seeds: {max(n_seeds)}.")
+
+        # get mean per parameter-config:
+        for param in os.listdir(tmp):
+            if "mean_result.csv" in os.listdir(os.path.join(tmp, param)):
+                os.remove(os.path.join(tmp, param, "mean_result.csv"))
+            metrics = [pd.read_csv(os.path.join(tmp, param, seed, "evaluation_metrics.csv")) for seed in os.listdir(os.path.join(tmp, param))]
+            mean = pd.DataFrame(pd.concat(metrics).mean(0).round(4), columns=[mname + "-" + param]).T
+            #std = pd.DataFrame(pd.concat(metrics).std(0).round(4), columns=[mname]).T
+            mean.to_csv(os.path.join(tmp, param, "mean_result.csv"), index=True)
+            #std.to_csv(os.path.join(tmp, param, "std_result.csv"))
+        
+        # collect across param-configs.
+        params = os.listdir(tmp)
+        means = [pd.read_csv(os.path.join(tmp, param, "mean_result.csv"), index_col=0) for param in params]
+        mean = pd.DataFrame(pd.concat(means).round(4))
+        params = [mname + "-" + p for p in params]
+        #mean.reset_index(params)
+        mean.to_csv(os.path.join(tmp, "mean_result_collected.csv"))
+    
+    means = [pd.read_csv(os.path.join(root, mname, "mean_result_collected.csv"), index_col=0) for mname in model_names]
+    final = pd.DataFrame(pd.concat(means).round(4))
+    return final

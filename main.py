@@ -99,8 +99,16 @@ def main(cfg: DictConfig):
     results_dir = pathlib.Path(cfg["results_dir"])
     _LOGGER.info(f"Results stored in {results_dir}")
 
+    """
+    Makes sure that we don't have to train models multiple times given a config file.
+    """
+    if os.path.exists(results_dir.joinpath("embedding.npz")):
+        _LOGGER.info(f"Embedding at {results_dir} already exists.")
+        return
+    
     random_seed = cfg["random_seed"]
-    reset_random_seeds(random_seed)
+    if torch.cuda.is_available():
+        reset_random_seeds(random_seed)
     
     train_dataset, val_dataset, ad = load_data(cfg)
 
