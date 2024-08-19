@@ -3,8 +3,8 @@ defaults:
 
 model: SimSiam
 out_dim: 12
-hidden_dim: 128
-hidden_dim_2: 6
+hidden_dim: 256
+hidden_dim_2: 256
 backbone_dropout: 0
 
 training:

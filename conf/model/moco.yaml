@@ -3,7 +3,7 @@ defaults:
 
 model: MoCo
 out_dim: 12
-hidden_dim: 128
+hidden_dim: 16
 memory_bank_size: 4096
 backbone_dropout: 0
 
