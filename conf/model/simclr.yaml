@@ -4,7 +4,6 @@ defaults:
 model: SimCLR
 out_dim: 12
 hidden_dim: 128
-backbone_dropout: 0
 
 training:
   max_epochs: 100

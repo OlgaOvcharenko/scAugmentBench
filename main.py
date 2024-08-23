@@ -38,10 +38,19 @@ def load_data(config) -> sc.AnnData:
 
     augmentation_config = config["augmentation"] # using config["augmentation"]
     
-    pm = PreProcessingModule(data_path, select_hvg=config["data"]["n_hvgs"], scale=False)
     #prepare_bbknn()
-
-    augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X)
+    if config['augmentation']['bbknn']['apply_prob'] > 0:
+        _LOGGER.info("Preprocessing with bbknn.")
+        pm = BbknnAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=10,
+                     exclude_fn=False, trim_val=None)
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns)
+    else:
+        _LOGGER.info("Preprocessing without bbknn.")
+        pm = PreProcessingModule(data_path, select_hvg=config["data"]["n_hvgs"], scale=False)
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=None)
+        _LOGGER.info("Augmentations generated.")
+    
+    #_LOGGER.info(f"Augmentation list: {augmentation_list}")
     transforms = Compose(augmentation_list)
     
     train_dataset = OurDataset(adata=pm.adata,
@@ -100,7 +109,7 @@ def main(cfg: DictConfig):
     _LOGGER.info(f"Results stored in {results_dir}")
 
     """
-    Makes sure that we don't have to train models multiple times given a config file.
+    The check below makes sure that we don't have to train models multiple times given a config file.
     """
     if os.path.exists(results_dir.joinpath("embedding.npz")):
         _LOGGER.info(f"Embedding at {results_dir} already exists.")
@@ -109,7 +118,9 @@ def main(cfg: DictConfig):
     random_seed = cfg["random_seed"]
     if torch.cuda.is_available():
         reset_random_seeds(random_seed)
-    
+        _LOGGER.info(f"Successfully reset seeds.")
+        print(cfg)
+
     train_dataset, val_dataset, ad = load_data(cfg)
 
     _LOGGER.info(f"Start training ({cfg['model']['model']})")
@@ -131,11 +142,14 @@ def main(cfg: DictConfig):
                                         adata=ad,
                                         batch_size=256,
                                         num_workers=14,
+                                        logger=_LOGGER,
                                         )
     #_LOGGER.info(f"Results:\n{results}")
-    
-    results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)
     np.savez_compressed(results_dir.joinpath("embedding.npz"), embedding)
+    try:
+        results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)
+    except:
+        _LOGGER.info("Something went wrong with the benchmark.")
 
 if __name__ == "__main__":
     main()

@@ -21,7 +21,7 @@ class DINO(pl.LightningModule):
     
     def __init__(self, in_dim, hidden_dim, out_dim, bsize, **kwargs):
         super().__init__()
-        self.student_backbone = get_backbone(in_dim, hidden_dim)
+        self.student_backbone = get_backbone(in_dim, hidden_dim, **kwargs)
         #bottleneck = hidden_dim//4 # TODO: Should this be its own parameter?
         self.student_head = DINOProjectionHead(hidden_dim, hidden_dim, bsize, out_dim, freeze_last_layer=1)
         self.teacher_backbone = copy.deepcopy(self.student_backbone)
@@ -52,6 +52,7 @@ class DINO(pl.LightningModule):
         x0, x1 = batch[0]
         z0 = self.forward(x0)
         z1 = self.forward(x1)
+        # TODO: symmetrize the loss?
         loss = self.criterion([z0], [z1], epoch=self.curr_epoch)
         return loss
     

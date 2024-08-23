@@ -13,9 +13,9 @@ import lightning as pl
 
 class VICReg(pl.LightningModule):
     
-    def __init__(self, in_dim, hidden_dim, out_dim, reg_lambda=1.0, reg_alpha=0.3, reg_beta=1.0, **kwargs):
+    def __init__(self, in_dim, hidden_dim, out_dim, reg_lambda=1.0, reg_alpha=1.0, reg_beta=1.0, **kwargs):
         super().__init__()
-        self.backbone = get_backbone(in_dim, hidden_dim)
+        self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
         self.projection_head = VICRegProjectionHead(
             input_dim=hidden_dim,
             hidden_dim=hidden_dim,
@@ -37,6 +37,7 @@ class VICReg(pl.LightningModule):
         x0, x1 = batch[0]
         z0 = self.forward(x0)
         z1 = self.forward(x1)
+        # TODO: symmetrize the loss?
         loss = self.criterion(z0, z1)
         return loss
 

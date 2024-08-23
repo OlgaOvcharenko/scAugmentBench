@@ -1,10 +1,14 @@
 mnn:
   alpha: 0.5
   apply_prob: 0
+  augment_set: ['int','exc']
+  nsize: 1
 
 bbknn:
   alpha: 0.5
   apply_prob: 0
+  augment_set: ['int','exc']
+  nsize: 1
 
 gauss:
   sigma: 0.2

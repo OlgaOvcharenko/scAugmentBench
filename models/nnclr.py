@@ -16,7 +16,7 @@ class NNCLR(pl.LightningModule):
 
     def __init__(self, in_dim, hidden_dim, hidden_dim_2, out_dim, memory_bank_size=4096, **kwargs):
         super().__init__()
-        self.backbone = get_backbone(in_dim, hidden_dim)
+        self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
         self.projection_head = NNCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
         self.prediction_head = NNCLRPredictionHead(out_dim, hidden_dim_2, out_dim)
         self.memory_bank = NNMemoryBankModule(size=(memory_bank_size, out_dim))
@@ -41,6 +41,7 @@ class NNCLR(pl.LightningModule):
         z1, p1 = self.forward(x1)
         z0 = self.memory_bank(z0, update=False)
         z1 = self.memory_bank(z1, update=True)
+        # TODO: symmetrize the loss?
         loss = 0.5 * (self.criterion(z0, p1) + self.criterion(z1, p0))
         return loss
 

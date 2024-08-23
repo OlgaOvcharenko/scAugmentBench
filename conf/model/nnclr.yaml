@@ -6,7 +6,6 @@ out_dim: 12
 hidden_dim: 128
 hidden_dim_2: 12
 memory_bank_size: 4096
-backbone_dropout: 0
 
 training:
   max_epochs: 100

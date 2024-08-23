@@ -17,7 +17,7 @@ class SimSiam(pl.LightningModule):
     def __init__(self, in_dim, hidden_dim, hidden_dim_2, out_dim, **kwargs):
         super().__init__()
         assert hidden_dim_2 <= hidden_dim, "hidden dim of prediction head should not be too large!"
-        self.backbone = get_backbone(in_dim, hidden_dim)
+        self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
         #self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim//2, out_dim) # TODO: How to choose dimensions here?
         self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim_2, out_dim)
         self.prediction_head = SimSiamPredictionHead(out_dim, hidden_dim_2, out_dim)
@@ -38,6 +38,7 @@ class SimSiam(pl.LightningModule):
         x0, x1 = batch[0]
         z0, p0 = self.forward(x0)
         z1, p1 = self.forward(x1)
+        # TODO: symmetrize the loss?
         loss = 0.5 * (self.criterion(z0, p1) + self.criterion(z1, p0))
         return loss
     

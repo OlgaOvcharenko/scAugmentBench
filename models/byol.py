@@ -160,7 +160,7 @@ class BYOLModule(pl.LightningModule):
     def __init__(self, in_dim, hidden_dim, out_dim, batch_size, **kwargs):
         # create the BYOL-backbone
         super().__init__()
-        self.backbone = get_backbone(in_dim, hidden_dim)
+        self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
         
         # create a simsiam model based on ResNet
         # note that bartontwins has the same architecture
@@ -183,7 +183,7 @@ class BYOLModule(pl.LightningModule):
         #(x0, x1), (id0, id1) = batch
         x0, x1 = batch[0]
         y0, y1 = self.projector_and_predictor(x0, x1)
-        # symmetrize the outputs of byol and calculate the loss
+        # TODO: symmetrize the outputs of byol and calculate the loss
         loss = self.criterion(y0, y1)
         self.log('train_loss_ssl', loss)
         return loss
@@ -191,34 +191,6 @@ class BYOLModule(pl.LightningModule):
     def predict(self, x):
         with torch.no_grad():
             return self.projector_and_predictor(x, x)[0][1]
-
-    """# learning rate warm-up
-    def optimizer_steps(self,
-                        epoch=None,
-                        batch_idx=None,
-                        optimizer=None,
-                        optimizer_idx=None,
-                        optimizer_closure=None,
-                        on_tpu=None,
-                        using_native_amp=None,
-                        using_lbfgs=None):        
-
-        # learning rate warmup
-        if self.trainer.global_step < 1000:
-            lr_scale = min(1., float(self.trainer.global_step + 1) / 1000.)
-            for pg in optimizer.param_groups:
-                pg['lr'] = lr_scale * 2e-2 * self.batch_size / 256
-
-        # update params
-        optimizer.step()
-        optimizer.zero_grad()"""
-    
+            
     def configure_optimizers(self):
         return optimizer_builder(self)
-    
-    """def configure_optimizers(self):
-        lr = 2e-2 * self.batch_size / 256 # linear scaling of lr
-        optim = torch.optim.SGD(self.projector_and_predictor.parameters(), lr=lr,
-                                momentum=0.9, weight_decay=5e-4)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, 800)
-        return [optim], [scheduler]"""

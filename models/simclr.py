@@ -15,7 +15,7 @@ class SimCLR(pl.LightningModule):
     
     def __init__(self, in_dim, hidden_dim, out_dim, **kwargs):
         super().__init__()
-        self.backbone = get_backbone(in_dim, hidden_dim)
+        self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
         self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
         self.criterion = NTXentLoss()
 
@@ -32,6 +32,7 @@ class SimCLR(pl.LightningModule):
         x0, x1 = batch[0]
         z0 = self.forward(x0)
         z1 = self.forward(x1)
+        # TODO: symmetrize the loss?
         loss = self.criterion(z0, z1)
         return loss
     

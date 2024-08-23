@@ -5,7 +5,7 @@ hydra:
       random_seed: range(20, 25)
       augmentation.mask.apply_prob: 0.5
       augmentation.mask.mask_percentage: choice(0.1, 0.2, 0.3, 0.4, 0.5)
-      +model: moco, vicreg, simclr
+      +model: moco, simsiam, simclr
       +data: immune
       +augmentation: base
       logging.project: architecture-ablation_vol1

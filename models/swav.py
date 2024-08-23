@@ -12,7 +12,7 @@ from models.model_utils import get_backbone
 class SwaV(nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim, memory_bank_size=4096, **kwargs):
         super().__init__()
-        self.backbone = get_backbone(in_dim, hidden_dim)
+        self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
         self.projection_head = SwaVProjectionHead(hidden_dim, hidden_dim, out_dim)
         self.prototypes = SwaVPrototypes(out_dim, hidden_dim, 1) # last param is #steps during which the "prototypes" are fixed.
 

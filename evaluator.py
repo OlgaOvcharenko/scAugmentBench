@@ -32,7 +32,7 @@ def infer_embedding(model, val_loader):
     return embedding
 
 
-def evaluate_model(model, adata, dataset, batch_size, num_workers,
+def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
                    batch_key="batchlb", cell_type_label="CellType",):
     val_loader = torch.utils.data.DataLoader(
                     dataset,
@@ -41,6 +41,30 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers,
                     shuffle=False,
                     drop_last=False)
     embedding = infer_embedding(model, val_loader)
+    logger.info(f"Inferred embedding of shape {embedding.shape}")
+    adata.obsm["Embedding"] = embedding
+    try:
+        bm = Benchmarker(
+                    adata,
+                    batch_key=batch_key,
+                    label_key=cell_type_label,
+                    embedding_obsm_keys=["Embedding"],
+                    bio_conservation_metrics=_BIO_METRICS,
+                    batch_correction_metrics=_BATCH_METRICS,
+                    n_jobs=num_workers,
+                )
+        bm.benchmark()
+        a = bm.get_results(False, True)
+        results = a[:1]
+    except Exception as error:
+        results = None
+        logger.info(".. An exception occured while evaluating:", error)
+
+    return results.astype(float).round(4), embedding
+
+
+def recalculate_results(adata, embedding, num_workers,
+                   batch_key="batchlb", cell_type_label="CellType",):
     adata.obsm["Embedding"] = embedding
     bm = Benchmarker(
                 adata,
@@ -55,7 +79,7 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers,
     a = bm.get_results(False, True)
     results = a[:1]
 
-    return results.astype(float).round(4), embedding
+    return results.astype(float).round(4)
 
 
 def plot_umap(adata, embedding, results_dir):
@@ -136,29 +160,36 @@ def get_best_params(project_root = "/local/home/tomap/scAugmentBench", dirname =
         
         if os.path.exists(os.path.join(tmp, "mean_result_collected.csv")):
             os.remove(os.path.join(tmp, "mean_result_collected.csv"))
-                
-        num_param_configs = len(os.listdir(tmp))
+        if os.path.exists(os.path.join(tmp, "std_result_collected.csv")):
+            os.remove(os.path.join(tmp, "std_result_collected.csv"))
+        
         n_seeds = [len(os.listdir(os.path.join(tmp, param_config))) for param_config in os.listdir(os.path.join(tmp))]
         print(f"Min num seeds: {min(n_seeds)}.\nMax num seeds: {max(n_seeds)}.")
 
-        # get mean per parameter-config:
+        # get mean and std per parameter-config:
         for param in os.listdir(tmp):
             if "mean_result.csv" in os.listdir(os.path.join(tmp, param)):
                 os.remove(os.path.join(tmp, param, "mean_result.csv"))
+            if "std_result.csv" in os.listdir(os.path.join(tmp, param)):
+                os.remove(os.path.join(tmp, param, "std_result.csv"))
             metrics = [pd.read_csv(os.path.join(tmp, param, seed, "evaluation_metrics.csv")) for seed in os.listdir(os.path.join(tmp, param))]
             mean = pd.DataFrame(pd.concat(metrics).mean(0).round(4), columns=[mname + "-" + param]).T
-            #std = pd.DataFrame(pd.concat(metrics).std(0).round(4), columns=[mname]).T
+            std = pd.DataFrame(pd.concat(metrics).std(0).round(4), columns=[mname + "-" + param]).T
             mean.to_csv(os.path.join(tmp, param, "mean_result.csv"), index=True)
-            #std.to_csv(os.path.join(tmp, param, "std_result.csv"))
+            std.to_csv(os.path.join(tmp, param, "std_result.csv"), index=True)
         
         # collect across param-configs.
         params = os.listdir(tmp)
         means = [pd.read_csv(os.path.join(tmp, param, "mean_result.csv"), index_col=0) for param in params]
+        std = [pd.read_csv(os.path.join(tmp, param, "std_result.csv"), index_col=0) for param in params]
         mean = pd.DataFrame(pd.concat(means).round(4))
+        std = pd.DataFrame(pd.concat(std).round(4))
         params = [mname + "-" + p for p in params]
-        #mean.reset_index(params)
         mean.to_csv(os.path.join(tmp, "mean_result_collected.csv"))
+        std.to_csv(os.path.join(tmp, "std_result_collected.csv"))
     
     means = [pd.read_csv(os.path.join(root, mname, "mean_result_collected.csv"), index_col=0) for mname in model_names]
-    final = pd.DataFrame(pd.concat(means).round(4))
-    return final
+    stds = [pd.read_csv(os.path.join(root, mname, "std_result_collected.csv"), index_col=0) for mname in model_names]
+    final_means = pd.DataFrame(pd.concat(means).round(4))
+    final_stds = pd.DataFrame(pd.concat(stds).round(4))
+    return final_means, final_stds

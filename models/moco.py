@@ -21,7 +21,7 @@ class MoCo(pl.LightningModule):
     def __init__(self, in_dim, hidden_dim, out_dim, memory_bank_size, max_epochs=200, **kwargs):
         super().__init__()
         self.max_epochs = max_epochs
-        self.backbone = get_backbone(in_dim, hidden_dim)
+        self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
         self.projection_head = MoCoProjectionHead(hidden_dim, hidden_dim, out_dim)
 
         self.backbone_momentum = copy.deepcopy(self.backbone)
@@ -53,6 +53,7 @@ class MoCo(pl.LightningModule):
         x_query, x_key = batch[0]
         query = self.forward(x_query)
         key = self.forward_momentum(x_key)
+        # TODO: symmetrize the loss?
         loss = self.criterion(query, key)
         return loss
     

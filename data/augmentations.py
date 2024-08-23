@@ -11,16 +11,23 @@ import torch.nn as nn
 from torch import bernoulli, rand, normal # rand is the uniform distribution [0, 1) 
 
 
-def get_augmentation_list(config, X):
+def get_augmentation_list(config, X, nns=None):
     # TODO: Implement possibility for reordering of augmentations.
     """return [Mask_Augment(mask_percentage=config['mask']['mask_percentage'], apply_prob=config['mask']['apply_prob']), 
             Gauss_Augment(noise_percentage=config['gauss']['noise_percentage'], sigma=config['gauss'], apply_prob=config['gauss']['apply_prob']),
             InnerSwap_Augment(swap_percentage=config['innerswap']['swap_percentage'], apply_prob=config['innerswap']['apply_prob']),
             CrossOver_Augment(X=X, cross_percentage=config['crossover'], apply_prob=config['crossover']['apply_prob'],)]"""
-    return [Mask_Augment(**config['mask']), 
-            Gauss_Augment(**config['gauss']),
-            InnerSwap_Augment(**config['innerswap']),
-            CrossOver_Augment(X=X, **config['crossover'])]
+    if nns is None:
+        return [Mask_Augment(**config['mask']), 
+                Gauss_Augment(**config['gauss']),
+                InnerSwap_Augment(**config['innerswap']),
+                CrossOver_Augment(X=X, **config['crossover']),]
+    else:
+        return [Mask_Augment(**config['mask']), 
+                Gauss_Augment(**config['gauss']),
+                InnerSwap_Augment(**config['innerswap']),
+                CrossOver_Augment(X=X, **config['crossover']),
+                Bbknn_Augment(X=X, nns=nns, **config['bbknn'])]
 
 def get_transforms(transform_list):
     return Compose(transform_list)
@@ -109,11 +116,12 @@ class Mnn_Augment(nn.Module):
 
 class Gauss_Augment(nn.Module):
     
-    def __init__(self, noise_percentage: float=0.2, sigma: float=0.5, apply_prob: float=0.3,):
+    def __init__(self, noise_percentage: float=0.2, sigma: float=0.5, apply_prob: float=0.3,input_shape=(1, 4000)):
         super().__init__()
         self.apply_thresh = apply_prob
         self.noise_percentage = noise_percentage
         self.sigma = sigma
+        self.input_shape=input_shape
     
     def augment(self, x):
         """
@@ -122,13 +130,13 @@ class Gauss_Augment(nn.Module):
         #application_tensor = torch.rand(x.shape[1]) <= self.noise_percentage
         num_masked = int(self.noise_percentage*x.shape[1])
         mask = torch.cat([torch.ones(num_masked, dtype=torch.bool), 
-                      torch.zeros(x.shape[1] - num_masked, dtype=torch.bool)])
+                      torch.zeros(self.input_shape[1] - num_masked, dtype=torch.bool)])
         mask = mask[torch.randperm(mask.size(0))]
 
         #application_tensor = torch.rand(x.shape[1], device="cuda") <= self.noise_percentage
         #torch.normal(mean=torch.zeros(x.shape[1]), std=0.5*torch.ones(x.shape[1]))
         #return x + mask * torch.normal(mean=torch.zeros(x.shape[1]), std=0.5*torch.ones(x.shape[1]))
-        return x + mask * torch.normal(mean=torch.zeros(x.shape[1]), std=self.sigma*torch.ones(x.shape[1]))
+        return x + mask * torch.normal(mean=torch.zeros(self.input_shape[1]), std=self.sigma*torch.ones(self.input_shape[1]))
 
     def forward(self, *input):
         view_1, view_2, cell_ids = input[0]['x1'], input[0]['x2'], input[0]['cell_ids']
@@ -184,14 +192,15 @@ class CrossOver_Augment(nn.Module):
 
 class InnerSwap_Augment(nn.Module):
     
-    def __init__(self, swap_percentage: float=0.1, apply_prob: float=0.5):
+    def __init__(self, swap_percentage: float=0.1, apply_prob: float=0.5, input_shape=(1, 4000)):
         super().__init__()
         self.apply_thresh = apply_prob
         self.swap_percentage = swap_percentage
+        self.input_shape = input_shape
     
     def augment(self, x):
-        n_swaps = int(x.shape[1]*self.swap_percentage//2)
-        swap_pair = torch.randint(x.shape[1], size=(n_swaps, 2))
+        n_swaps = int(self.input_shape[1]*self.swap_percentage//2)
+        swap_pair = torch.randint(self.input_shape[1], size=(n_swaps, 2))
         #swap_indices = torch.multinomial(torch.ones(2*x.shape[0], x.shape[1]), n_swaps)
         x[:,swap_pair[:,0]], x[:,swap_pair[:,1]] = x[:,swap_pair[:,1]], x[:,swap_pair[:, 0]]
         return x
@@ -209,15 +218,16 @@ class InnerSwap_Augment(nn.Module):
 
 class Mask_Augment(nn.Module):
     
-    def __init__(self, mask_percentage: float = 0.15, apply_prob: float = 0.5):
+    def __init__(self, mask_percentage: float = 0.15, apply_prob: float = 0.5, input_shape=(1, 4000)):
         super().__init__()
         self.apply_thresh=apply_prob
         self.mask_percentage=mask_percentage
+        self.input_shape=input_shape
 
     def augment(self, x):
         num_masked = int(self.mask_percentage*x.shape[1])
         mask = torch.cat([torch.ones(num_masked, dtype=torch.bool), 
-                      torch.zeros(x.shape[1] - num_masked, dtype=torch.bool)])
+                      torch.zeros(self.input_shape[1] - num_masked, dtype=torch.bool)])
         mask = mask[torch.randperm(mask.size(0))]
         return x*mask
 
@@ -237,12 +247,14 @@ class Bbknn_Augment(nn.Module):
     def __init__(self, X, nns, alpha, augment_set, apply_prob=0.9, nsize=1):
         super().__init__()
         self.apply_thresh = apply_prob
-        self.nns = {int(k): nns[k] for k in nns.keys()}
+        if nns is not None:
+            self.nns = {int(k): nns[k] for k in nns.keys()}
         self.alpha = alpha
         # Number of neighbors to use as basis for mutation.
         self.nsize = nsize
         self.X = torch.tensor(X.toarray())
-        self.anchor_keys = list(self.nns.keys())
+        if nns is not None:
+            self.anchor_keys = list(self.nns.keys())
         self.augment_set = []
         for ai in augment_set:
             if ai=='int':
@@ -273,22 +285,3 @@ class Bbknn_Augment(nn.Module):
             view_2 = self.augment(view_2, int(cell_ids))
 
         return {'x1': view_1.unsqueeze(0), 'x2': view_2.unsqueeze(0), 'cell_ids': cell_ids}
-
-# Mutation with other cells.
-"""class MultiCrossOver_Augment(nn.Module):
-    
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x, cell_id):
-        return [view_1.astype('float32'), view_2.astype('float32')], cell_id"""
-
-"""def forward(self, x, x_intras, x_inters):
-        # handle that it doesn't exist.
-        x_p = x_inters[torch.multinomial(torch.ones(len(x_inters)), 1, replacement=False)]
-        # Changing nsize would allow multiple neighbors to be used for augmentation
-        x_n = x_intras[torch.multinomial(torch.ones(len(x_intras)), 1, replacement=False)]
-
-        x_aug = self.aug_fn(x, x_n)
-        x_p_aug = self.aug_fn(x_p, x_p_n)
-        return [x_aug.astype('float32'), x_p_aug.astype('float32')]"""
