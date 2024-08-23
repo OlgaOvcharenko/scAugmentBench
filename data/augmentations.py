@@ -11,7 +11,7 @@ import torch.nn as nn
 from torch import bernoulli, rand, normal # rand is the uniform distribution [0, 1) 
 
 
-def get_augmentation_list(config, X, nns=None):
+def get_augmentation_list(config, X, nns=None, mnn_dict=None):
     # TODO: Implement possibility for reordering of augmentations.
     """return [Mask_Augment(mask_percentage=config['mask']['mask_percentage'], apply_prob=config['mask']['apply_prob']), 
             Gauss_Augment(noise_percentage=config['gauss']['noise_percentage'], sigma=config['gauss'], apply_prob=config['gauss']['apply_prob']),
@@ -22,6 +22,13 @@ def get_augmentation_list(config, X, nns=None):
                 Gauss_Augment(**config['gauss']),
                 InnerSwap_Augment(**config['innerswap']),
                 CrossOver_Augment(X=X, **config['crossover']),]
+    elif mnn_dict is not None:
+        return [Mnn_Augment(X=X, mnn_dict=mnn_dict, nns=nns, **config['mnn']),
+                Mask_Augment(**config['mask']), 
+                Gauss_Augment(**config['gauss']),
+                InnerSwap_Augment(**config['innerswap']),
+                CrossOver_Augment(X=X, **config['crossover']),
+                Bbknn_Augment(X=X, nns=nns, **config['bbknn'])]
     else:
         return [Mask_Augment(**config['mask']), 
                 Gauss_Augment(**config['gauss']),
