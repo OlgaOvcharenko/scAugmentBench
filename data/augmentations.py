@@ -113,7 +113,8 @@ class Mnn_Augment(nn.Module):
         """view_1 = torch.cat(view_1)
         view_2 = torch.cat(view_2)"""
 
-        return {'x1': view_1.unsqueeze(0), 'x2': view_2.unsqueeze(0), 'cell_ids': cell_ids}
+        #return {'x1': view_1.unsqueeze(0), 'x2': view_2.unsqueeze(0), 'cell_ids': cell_ids}
+        return {'x1': view_1, 'x2': view_2, 'cell_ids': cell_ids}
 
 
 class Gauss_Augment(nn.Module):
@@ -130,7 +131,7 @@ class Gauss_Augment(nn.Module):
         TODO: This is, at the moment, applying the same transform to all cells in the batch. CHANGE!
         """
         #application_tensor = torch.rand(x.shape[1]) <= self.noise_percentage
-        num_masked = int(self.noise_percentage*x.shape[1])
+        num_masked = int(self.noise_percentage*self.input_shape[1])
         mask = torch.cat([torch.ones(num_masked, dtype=torch.bool), 
                       torch.zeros(self.input_shape[1] - num_masked, dtype=torch.bool)])
         mask = mask[torch.randperm(mask.size(0))]
@@ -161,19 +162,20 @@ Crossing over with any cell, rather than similar ones. This is basically what mn
 """
 class CrossOver_Augment(nn.Module):
     
-    def __init__(self, X, cross_percentage: float=0.25, apply_prob: float=0.4):
+    def __init__(self, X, cross_percentage: float=0.25, apply_prob: float=0.4,input_shape=(1, 4000)):
         super().__init__()
         self.apply_thresh = apply_prob
         self.cross_percentage = cross_percentage
         self.X = torch.tensor(X.toarray())
+        self.input_shape=input_shape
         
     def augment(self, x):
         cross_idx = torch.randint(0, len(self.X), (1,))
         cross_instance = self.X[cross_idx]
         
-        num_masked = int(self.cross_percentage*x.shape[1])
+        num_masked = int(self.cross_percentage*self.input_shape[1])
         mask = torch.cat([torch.ones(num_masked, dtype=torch.bool), 
-                      torch.zeros(x.shape[1] - num_masked, dtype=torch.bool)])
+                      torch.zeros(self.input_shape[1] - num_masked, dtype=torch.bool)])
         mask = mask[torch.randperm(mask.size(0))]
         antimask = mask == 0
         return x*antimask + cross_instance*mask
@@ -227,7 +229,7 @@ class Mask_Augment(nn.Module):
         self.input_shape=input_shape
 
     def augment(self, x):
-        num_masked = int(self.mask_percentage*x.shape[1])
+        num_masked = int(self.mask_percentage*self.input_shape[1])
         mask = torch.cat([torch.ones(num_masked, dtype=torch.bool), 
                       torch.zeros(self.input_shape[1] - num_masked, dtype=torch.bool)])
         mask = mask[torch.randperm(mask.size(0))]
@@ -286,4 +288,5 @@ class Bbknn_Augment(nn.Module):
         if s <= self.apply_thresh:
             view_2 = self.augment(view_2, int(cell_ids))
 
-        return {'x1': view_1.unsqueeze(0), 'x2': view_2.unsqueeze(0), 'cell_ids': cell_ids}
+        #return {'x1': view_1.unsqueeze(0), 'x2': view_2.unsqueeze(0), 'cell_ids': cell_ids}
+        return {'x1': view_1, 'x2': view_2, 'cell_ids': cell_ids}
