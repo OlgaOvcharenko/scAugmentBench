@@ -68,42 +68,7 @@ class BYOL(nn.Module, _MomentumEncoderMixin):
                 x0: torch.Tensor,
                 x1: torch.Tensor = None,
                 return_features: bool = False):
-        """Forward pass through the encoder and the momentum encoder.
-
-        Performs the momentum update, extracts features with the backbone and
-        applies the projection (and prediciton) head to the output space. If
-        x1 is None, only x0 will be processed otherwise, x0 is processed with
-        the encoder and x1 with the momentum encoder.
-
-        Args:
-            x0:
-                Tensor of shape bsz x channels x W x H.
-            x1:
-                Tensor of shape bsz x channels x W x H.
-            return_features:
-                Whether or not to return the intermediate features backbone(x).
-
-        Returns:
-            The output proejction of x0 and (if x1 is not None) the output 
-            projection of x1. If return_features is True, the output for each x 
-            is a tuple (out, f) where f are the features before the projection
-            head.
         
-        Examples:
-            >>> # single input, single output
-            >>> out = model._forward(x)
-            >>>
-            >>> # single input with return_features=True
-            >>> out, f = model._forward(x, return_features=True)
-            >>>
-            >>> # two inputs, two outputs
-            >>> out0, out1 = model._forward(x0, x1)
-            >>>
-            >>> # two inputs two outputs with return_features=True
-            >>> (out0, f0), (out1, f1) = model._forward(x0, x1, return_features=True)
-
-        """
-
         self._momentum_update(self.m)
 
         # forward pass of first input x0
