@@ -38,7 +38,7 @@ class SimSiam(pl.LightningModule):
         x0, x1 = batch[0]
         z0, p0 = self.forward(x0)
         z1, p1 = self.forward(x1)
-        # TODO: symmetrize the loss?
+        # TODO: symmetrize the loss? --> Using the first term below is symmetry! 
         loss = 0.5 * (self.criterion(z0, p1) + self.criterion(z1, p0))
         return loss
     

@@ -56,13 +56,14 @@ def binary_switch(x, x_p, alpha):
 
 class Mnn_Augment(nn.Module):
     
-    def __init__(self, X, mnn_dict, nns, alpha, augment_set, apply_prob=0.9, nsize=1):
+    def __init__(self, X, mnn_dict, nns, alpha, augment_set, apply_prob=0.9, nsize=1, **kwargs):
         super().__init__()
         self.nns = {int(k): nns[k] for k in nns.keys()}
         # TODO: This needs to be done during constr. of mnn_dict.
         self.apply_thresh = apply_prob
         self.mnn_dict = {int(k): mnn_dict[k] for k in mnn_dict.keys()}
         self.alpha = alpha
+        print(f"---------- alpha : {alpha} ------------")
         self.nsize = nsize
         self.X = torch.tensor(X.toarray())
         self.anchor_keys = list(self.mnn_dict.keys())
@@ -248,7 +249,7 @@ class Mask_Augment(nn.Module):
 
 class Bbknn_Augment(nn.Module):
     
-    def __init__(self, X, nns, alpha, augment_set, apply_prob=0.9, nsize=1):
+    def __init__(self, X, nns, alpha, augment_set, apply_prob=0.9, nsize=1, **kwargs):
         super().__init__()
         self.apply_thresh = apply_prob
         if nns is not None:

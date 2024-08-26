@@ -41,14 +41,14 @@ def load_data(config) -> sc.AnnData:
     #prepare_bbknn()
     if config['augmentation']['bbknn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with bbknn.")
-        pm = BbknnAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=10,
+        pm = BbknnAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['bbknn']['knn'],
                      exclude_fn=False, trim_val=None)
         augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns)
     elif config['augmentation']['mnn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with mnn.")
-        pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=10,
+        pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['mnn']['knn'],
                      exclude_fn=False, filtering=True)
-        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns)
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns, mnn_dict=pm.mnn_dict)
     else:
         _LOGGER.info("Preprocessing without bbknn.")
         pm = PreProcessingModule(data_path, select_hvg=config["data"]["n_hvgs"], scale=False)
