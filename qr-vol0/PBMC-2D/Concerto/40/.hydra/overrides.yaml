@@ -1,0 +1,9 @@
+- random_seed=40
+- model.dropout=0.2
+- +model=concerto
+- model.training.max_epochs=3
+- +data=pbmc_2_donor
+- data.holdout_batch=['Batch1']
+- +augmentation=base
+- logging.project=architecture-ablation_vol1
+- +experiment=concerto_qr

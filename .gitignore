@@ -4,3 +4,4 @@ lightning_logs
 *.csv
 *__pycache__*
 */__pycache__
+*vol*

@@ -26,7 +26,7 @@ def infer_embedding(model, val_loader):
     for x in val_loader:
         with torch.no_grad():
             outs.append(model.predict(x[0]))
-
+    
     embedding = torch.concat(outs)
     embedding = np.array(embedding)
     return embedding

@@ -11,7 +11,7 @@ import wandb
 import scanpy as sc
 import pandas as pd
 
-from trainer import train_model
+from trainer import train_model, train_clf
 from evaluator import evaluate_model
 from data.graph_augmentation_prep import *
 from data.dataset import OurDataset
@@ -65,12 +65,11 @@ def load_data(config) -> sc.AnnData:
     train_dataset = OurDataset(adata=pm.adata,
                                transforms=transforms, 
                                valid_ids=None
-                               )
+                            )
     val_dataset = OurDataset(adata=pm.adata,
                              transforms=None,
                              valid_ids=None
-                             )
-    
+                            )
     _LOGGER.info("Finished loading data.....")
     
     return train_dataset, val_dataset, pm.adata
@@ -147,6 +146,7 @@ def main(cfg: DictConfig):
     _LOGGER.info(f"Training of the model took {round(run_time, 3)} seconds.")
     
     if cfg["data"]["holdout_batch"] is None:
+        _LOGGER.info("Running SCIB-Benchmark Evaluation.")
         results, embedding = evaluate_model(model=model,
                                             dataset=val_dataset,
                                             adata=ad,
@@ -164,10 +164,21 @@ def main(cfg: DictConfig):
     elif cfg["data"]["holdout_batch"] is not None:
         _LOGGER.info("Running QR-Mapper-Inference.")
         _LOGGER.info(f"Results of QR-Mapper will be saved in {results_dir}")
-        start = time.time()
-        pass # TODO: Implement functionality in trainer.py
-        run_time = time.time() - start
+        # load total adata, and get holdout-subset as Val_X and Y for clf-training
+        pm = PreProcessingModule(cfg["data"]["data_path"], select_hvg=cfg["data"]["n_hvgs"], 
+                                 scale=False, holdout_batch=None)
+        if type(cfg["data"]["holdout_batch"]) == str:
+            fltr = pm.adata.obs['batchlb']==cfg["data"]["holdout_batch"]
+        else:
+            fltr = [pm.adata.obs['batchlb'][i] in cfg["data"]["holdout_batch"] for i in range(len(pm.adata))]
+        
+        train_adata = ad
+        val_adata = pm.adata[fltr]
+        clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType')
+        
+        print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
         _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
+
 
 if __name__ == "__main__":
     main()
