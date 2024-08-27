@@ -2,7 +2,7 @@ defaults:
   - model.yaml
 
 model: Concerto
-out_dim: 12
+out_dim: 128
 hidden_dim: 128
 dropout: 0.2
 vocabulary_size: 10
