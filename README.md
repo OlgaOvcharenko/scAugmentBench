@@ -30,6 +30,20 @@ Model training is performed with pytorch-lightning, the ADAM optimizer and a con
 To schedule experiments from the _conf_ folder, define the data_path in the corresponding file of the conf/data directory. Models and augmentations, as well as the dataset, are defined in the experiment yaml-file. 
 
 To train the model(s), run
+
 `python main.py --multirun +experiment=<experiment_name>.yaml`
+
 To schedule multiple runs with slurm, use
+
 `python main.py --multirun +experiment=<experiment_name> +cluster=slurm`
+
+### Availability of Augmentations
+This work evaluates various single-cell augmentations. To use the augmentations in another project:
+
+```python
+from main import load_data
+
+train_dataset, val_dataset, adata = load_data(config)
+```
+
+where config is required to be a dictionary (e.g. stemming from a .yaml-file) with entries in config["augmentation"].
