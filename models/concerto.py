@@ -67,12 +67,12 @@ class Concerto(pl.LightningModule):
     def forward_teacher(self, x):
         # TODO.
         #sparse_value = torch.unsqueeze(x, 2)
-        #sparse_value = self.bn1(sparse_value)
-        #x = self.bn1(x)
+        x = self.bn1(x)
+        torch.nn.functional.relu_(x)
         x = self.embedding_layer(x.long())
         x, a = self.attention(x)
         # attention returned nans because u was uninitialized...
-        
+
         x = torch.tanh(torch.sum(x, axis=1))
         x = self.bn2(x)
         x = self.dropout(x)

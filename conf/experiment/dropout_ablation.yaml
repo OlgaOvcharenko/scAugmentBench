@@ -3,8 +3,8 @@ hydra:
   sweeper:
     params:
       random_seed: range(20, 25)
-      model.dropout: choice(0.1, 0.15, 0.2, 0.25)
-      +model: byol, simclr, simsiam, moco
+      model.dropout: choice(0.15, 0.2)
+      +model: nnclr
       +data: immune
       +augmentation: base
       logging.project: architecture-ablation_vol1
