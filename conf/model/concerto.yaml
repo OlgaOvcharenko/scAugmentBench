@@ -1,15 +1,14 @@
 defaults:
   - model.yaml
 
-model: VICReg
+model: Concerto
 out_dim: 12
 hidden_dim: 128
-reg_lambda: 1.0
-reg_alpha: 1.0
-reg_beta: 1.0
+dropout: 0.2
+vocabulary_size: 10
 
 training:
-  max_epochs: 200
-  batch_size: 256
+  max_epochs: 3
+  batch_size: 32
   lr: 0.0001
   weight_decay: 0.000001

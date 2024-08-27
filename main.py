@@ -135,9 +135,9 @@ def main(cfg: DictConfig):
     model = train_model(dataset=train_dataset, 
                         model_config=cfg["model"],
                         random_seed=random_seed, 
-                        batch_size=256,
+                        batch_size=cfg["model"]["training"]["batch_size"],
                         num_workers=14,
-                        n_epochs=200,
+                        n_epochs=cfg["model"]["training"]["max_epochs"],
                         logger=_LOGGER)
     run_time = time.time() - start
     _LOGGER.info(f"Training of the model took {round(run_time, 3)} seconds.")
@@ -145,7 +145,7 @@ def main(cfg: DictConfig):
     results, embedding = evaluate_model(model=model,
                                         dataset=val_dataset,
                                         adata=ad,
-                                        batch_size=256,
+                                        batch_size=cfg["model"]["training"]["batch_size"],
                                         num_workers=14,
                                         logger=_LOGGER,
                                         )

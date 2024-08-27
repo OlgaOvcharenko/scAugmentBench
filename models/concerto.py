@@ -38,7 +38,6 @@ class AttentionWithContext(nn.Module):
         #u_t = tanh(W h_t + b)
         u_t = torch.tanh(self.l1(x))
         a_t = torch.matmul(u_t, self.u)
-        print(a_t)
         a = torch.exp(a_t)
         a = a / (torch.sum(a, dim=1, keepdim=True) + 1e-10)
         a = a.unsqueeze(-1)
@@ -52,13 +51,13 @@ class Concerto(pl.LightningModule):
     def __init__(self, in_dim, hidden_dim, out_dim, dropout=0.2, vocabulary_size=4000, **kwargs):
         super().__init__()
         #self.backbone = get_backbone(in_dim, hidden_dim, , **kwargs)
+        print(f"Attention with vocabulary-size {vocabulary_size}")
         self.student_encoder = student_backbone(in_dim, hidden_dim, **kwargs)
-        self.projection_head_student = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
-        
+        self.projection_head_student = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim, num_layers=1)
         
         self.embedding_layer = nn.Embedding(num_embeddings=vocabulary_size, embedding_dim=out_dim)
         self.attention = AttentionWithContext(out_dim, out_dim)
-        self.projection_head_teacher = SimCLRProjectionHead(out_dim, out_dim, out_dim)
+        self.projection_head_teacher = SimCLRProjectionHead(out_dim, out_dim, out_dim, num_layers=1)
         self.bn1 = nn.BatchNorm1d(in_dim)
         self.bn2 = nn.BatchNorm1d(out_dim)
         
@@ -69,8 +68,7 @@ class Concerto(pl.LightningModule):
         # TODO.
         #sparse_value = torch.unsqueeze(x, 2)
         #sparse_value = self.bn1(sparse_value)
-        #x = self.bn1(x) <<-- is this the float -> long conversion?!
-        
+        #x = self.bn1(x)
         x = self.embedding_layer(x.long())
         x, a = self.attention(x)
         # attention returned nans because u was uninitialized...
@@ -82,7 +80,6 @@ class Concerto(pl.LightningModule):
         return z
     
     def forward(self, x):
-        print(x.shape)
         x = self.student_encoder(x).flatten(start_dim=1)
         x = self.dropout(x)
         z = self.projection_head_student(x)

@@ -13,11 +13,12 @@ from models.barlowtwins import BarlowTwins
 from models.moco import MoCo
 from models.vicreg import VICReg
 from models.simclr import SimCLR
-from models.simsiam import SimSiam # which should we use? z or p? LOOK @ PAPER. --> zzzzz
-from models.nnclr import NNCLR # which should we use? z or p? LOOK @ PAPER. --> zzzzz
+from models.simsiam import SimSiam
+from models.nnclr import NNCLR
+from models.concerto import Concerto
 #from models.dino import *
 
-_model_dict = {"BYOL": BYOLModule, "BarlowTwins": BarlowTwins, "MoCo": MoCo, "VICReg": VICReg, "SimCLR": SimCLR, "SimSiam": SimSiam, "NNCLR": NNCLR}
+_model_dict = {"BYOL": BYOLModule, "BarlowTwins": BarlowTwins, "MoCo": MoCo, "VICReg": VICReg, "SimCLR": SimCLR, "SimSiam": SimSiam, "NNCLR": NNCLR, "Concerto": Concerto}
 
 def train_model(dataset, model_config, random_seed, batch_size, 
                 num_workers, n_epochs, logger, cfg=None):
