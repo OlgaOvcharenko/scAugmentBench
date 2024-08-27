@@ -7,7 +7,7 @@ hydra:
     timeout_min: 25
     tasks_per_node:  1
     nodes: 1
-    mem-per-cpu: 16
+    mem_per_cpu: 16
     gres=gpumem: 8
     cpus_per_task: 16
     partition: gpu
