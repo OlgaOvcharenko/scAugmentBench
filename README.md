@@ -11,11 +11,6 @@ All architectures share the same encoder architecture. They differ in various de
 - usage of a projector
 - usage of a predictor
 
-## Implementation Details
-
-We use hydra to schedule experiments (see _conf_ folder) and lightly to define the neural networks (see _model_ folder).
-Model training is performed with pytorch-lightning, the ADAM optimizer and a constant learning rate 1e-4.
-
 ## Scope
 
 Goal of this project is to advertise further research on contrastive self-supervised learning for cell representation learning.
@@ -26,3 +21,15 @@ Our work shows that current methods are able to correct for batch effects, impro
 This work is a first step towards a wider application of CL for cell representation learning. We note that there are parameters and architectural
 choices that were not considered during this work due to computational constraints. For the presented models, there are many parameters (and hyperparameters)
 that could be improved upon. This is left as future work.
+
+## Implementation Details
+
+We use hydra to schedule experiments (see _conf_ folder) and lightly to define the neural networks (see _model_ folder).
+Model training is performed with pytorch-lightning, the ADAM optimizer and a constant learning rate 1e-4.
+
+To schedule experiments from the _conf_ folder, define the data_path in the corresponding file of the conf/data directory. Models and augmentations, as well as the dataset, are defined in the experiment yaml-file. 
+
+To train the model(s), run
+`python main.py --multirun +experiment=<experiment_name>.yaml`
+To schedule multiple runs with slurm, use
+`python main.py --multirun +experiment=<experiment_name> +cluster=slurm`
