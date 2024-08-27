@@ -9,4 +9,4 @@ hydra:
     nodes: 1
     mem_per_cpu: 16
     cpus_per_task: 16
-    gres: gpu:1
+    gres: gpumem:8G
