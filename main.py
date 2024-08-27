@@ -71,6 +71,9 @@ def load_data(config) -> sc.AnnData:
     
     return train_dataset, val_dataset, pm.adata
 
+# TODO new load data
+def load_data_multimodal(config):
+    pass
 
 def reset_random_seeds(seed):
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"

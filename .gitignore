@@ -2,3 +2,6 @@ __pycache__
 *-ablation*
 lightning_logs
 *.csv
+
+actual_data
+.DS_Store

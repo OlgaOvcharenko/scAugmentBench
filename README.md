@@ -33,7 +33,7 @@ To schedule experiments from the _conf_ folder, define the data_path in the corr
 
 To train the model(s), run
 
-`python main.py --multirun +experiment=<experiment_name>.yaml`
+`python main.py --multirun +experiment=<experiment_name>`
 
 To schedule multiple runs with slurm, use
 
