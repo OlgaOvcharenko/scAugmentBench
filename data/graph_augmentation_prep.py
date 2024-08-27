@@ -31,11 +31,12 @@ class PreProcessingModule():
             data_dir,
             select_hvg=True,
             scale=False,
+            holdout_batch=None
         ):
         self.scale = scale
         self.data_dir = data_dir  # data_root/dataset_name
         self.select_hvg = select_hvg
-
+        self.holdout_batch = holdout_batch
         self.load_data()
     
     def load_data(self):
@@ -43,6 +44,14 @@ class PreProcessingModule():
         sps_x, genes, cells, metadata = prepare_dataset(self.data_dir)
         if type(metadata) == list and len(metadata) == 3:
             metadata, X_cnv, cnv_mapping = metadata
+        
+        if type(self.holdout_batch) == str:
+            fltr = list(metadata[configs.batch_key] != self.holdout_batch)
+            sps_x, cells, metadata = sps_x[:, fltr], cells[fltr], metadata[fltr]
+        elif type(self.holdout_batch) == list:
+            fltr = [metadata[configs.batch_key][i] not in self.holdout_batch for i in range(len(metadata))]
+            sps_x, cells, metadata = sps_x[:, fltr], cells[fltr], metadata[fltr]
+
         adata, X, cell_name, gene_name, metadata = preprocess_dataset(
             sps_x,
             cells,
@@ -104,9 +113,10 @@ class ClaireAugment(PreProcessingModule):
             knn = 10, # defines number of neighbors to compute
             exclude_fn=True,
             k_anchor=5,
-            filtering=True, 
+            filtering=True,
+            **kwargs,
         ):
-        super().__init__(data_dir, select_hvg, scale)
+        super().__init__(data_dir, select_hvg, scale, **kwargs)
         self.k_anchor = k_anchor
         self.knn = knn
         self.exclude_fn = exclude_fn
@@ -311,9 +321,10 @@ class BbknnAugment(PreProcessingModule):
             scale=False, 
             knn = 10, # defines number of neighbors to compute
             exclude_fn=False,
-            trim_val=None, 
+            trim_val=None,
+            **kwargs,
         ):
-        super().__init__(data_dir, select_hvg, scale)
+        super().__init__(data_dir, select_hvg, scale, **kwargs)
         self.knn = knn
         self.exclude_fn = exclude_fn
         self.trim = trim_val

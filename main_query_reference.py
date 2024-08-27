@@ -55,7 +55,7 @@ def load_data(config) -> sc.AnnData:
     else:
         _LOGGER.info("Preprocessing without bbknn.")
         pm = PreProcessingModule(data_path, select_hvg=config["data"]["n_hvgs"], 
-                                 scale=False, holdout_batch=config["data"]["holdout_batch"])
+                                 scale=False, holdout_batch="10X")#config["data"]["holdout_batch"])
         augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X)
         _LOGGER.info("Augmentations generated.")
     
@@ -66,7 +66,10 @@ def load_data(config) -> sc.AnnData:
                                transforms=transforms, 
                                valid_ids=None
                                )
-    val_dataset = OurDataset(adata=pm.adata,
+    
+    pm2 = PreProcessingModule(data_path, select_hvg=config["data"]["n_hvgs"],
+                              scale=False, holdout_batch=["Oetjen_U", "Oetjen_P", "Oetjen_A"])    
+    val_dataset = OurDataset(adata=pm2.adata,
                              transforms=None,
                              valid_ids=None
                              )
@@ -104,15 +107,6 @@ def flatten(dictionary, parent_key="", separator="_"):
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
-    # Set up logging
-    """wandb.init(
-        project=cfg.logging.project,
-        reinit=True,
-        config=flatten(dict(cfg)),
-        entity=cfg.logging.entity,
-        mode=cfg.logging.mode,
-        tags=cfg.model.get("tag", None),
-    )"""
 
     results_dir = pathlib.Path(cfg["results_dir"])
     _LOGGER.info(f"Results stored in {results_dir}")
@@ -130,6 +124,7 @@ def main(cfg: DictConfig):
         _LOGGER.info(f"Successfully reset seeds.")
         print(cfg)
 
+    # TODO: Define holdout here.
     train_dataset, val_dataset, ad = load_data(cfg)
 
     _LOGGER.info(f"Start training ({cfg['model']['model']})")
@@ -146,28 +141,21 @@ def main(cfg: DictConfig):
     run_time = time.time() - start
     _LOGGER.info(f"Training of the model took {round(run_time, 3)} seconds.")
     
-    if cfg["data"]["holdout_batch"] is None:
-        results, embedding = evaluate_model(model=model,
-                                            dataset=val_dataset,
-                                            adata=ad,
-                                            batch_size=cfg["model"]["training"]["batch_size"],
-                                            num_workers=14,
-                                            logger=_LOGGER,
-                                            )
-        #_LOGGER.info(f"Results:\n{results}")
-        np.savez_compressed(results_dir.joinpath("embedding.npz"), embedding)
-        try:
-            results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)
-        except:
-            _LOGGER.info("Something went wrong with the benchmark.")
-    
-    elif cfg["data"]["holdout_batch"] is not None:
-        _LOGGER.info("Running QR-Mapper-Inference.")
-        _LOGGER.info(f"Results of QR-Mapper will be saved in {results_dir}")
-        start = time.time()
-        pass # TODO: Implement functionality in trainer.py
-        run_time = time.time() - start
-        _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
+    # TODO: Implement the qr-mapper-training.
+
+    """results, embedding = evaluate_model(model=model,
+                                        dataset=val_dataset,
+                                        adata=ad,
+                                        batch_size=cfg["model"]["training"]["batch_size"],
+                                        num_workers=14,
+                                        logger=_LOGGER,
+                                        )
+    #_LOGGER.info(f"Results:\n{results}")
+    np.savez_compressed(results_dir.joinpath("embedding.npz"), embedding)
+    try:
+        results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)
+    except:
+        _LOGGER.info("Something went wrong with the benchmark.")"""
 
 if __name__ == "__main__":
     main()
