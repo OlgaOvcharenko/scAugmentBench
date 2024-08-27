@@ -2,3 +2,4 @@ __pycache__
 *-ablation*
 lightning_logs
 *.csv
+*__pycache__*
