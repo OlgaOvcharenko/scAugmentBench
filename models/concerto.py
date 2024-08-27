@@ -72,7 +72,7 @@ class Concerto(pl.LightningModule):
         x = self.embedding_layer(x.long())
         x, a = self.attention(x)
         # attention returned nans because u was uninitialized...
-
+        
         x = torch.tanh(torch.sum(x, axis=1))
         x = self.bn2(x)
         x = self.dropout(x)
