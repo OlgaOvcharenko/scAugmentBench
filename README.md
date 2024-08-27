@@ -24,6 +24,8 @@ that could be improved upon. This is left as future work.
 
 ## Implementation Details
 
+To install a conda / miniconda / mamba environment for reproducibility, call `conda create --name <env> --file requirements.txt`.
+
 We use hydra to schedule experiments (see _conf_ folder) and lightly to define the neural networks (see _model_ folder).
 Model training is performed with pytorch-lightning, the ADAM optimizer and a constant learning rate 1e-4.
 
