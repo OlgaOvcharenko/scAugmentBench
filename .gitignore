@@ -5,3 +5,9 @@ lightning_logs
 
 actual_data
 .DS_Store
+data/__pycache__
+moco/__pycache__
+models/__pycache__
+utils/__pycache__
+
+
