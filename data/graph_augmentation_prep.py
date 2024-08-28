@@ -31,10 +31,14 @@ class PreProcessingModule():
             data_dir,
             select_hvg=True,
             scale=False,
+            preprocess=True,
+            multimodal=False
         ):
         self.scale = scale
         self.data_dir = data_dir  # data_root/dataset_name
         self.select_hvg = select_hvg
+        self.preprocess = preprocess
+        self.multimodal = multimodal
 
         self.load_data()
     
@@ -43,6 +47,8 @@ class PreProcessingModule():
         sps_x, genes, cells, metadata = prepare_dataset(self.data_dir)
         if type(metadata) == list and len(metadata) == 3:
             metadata, X_cnv, cnv_mapping = metadata
+        elif type(metadata) == list and len(metadata) == 2 and self.multimodal:
+            metadata, modality = metadata
         adata, X, cell_name, gene_name, metadata = preprocess_dataset(
             sps_x,
             cells,
@@ -50,7 +56,8 @@ class PreProcessingModule():
             metadata,
             self.select_hvg,
             self.scale,
-            )
+            self.preprocess
+        )
 
         self.X = X   # sparse
         self.metadata = metadata
@@ -63,6 +70,9 @@ class PreProcessingModule():
         self.adata.obs = metadata.copy()
         self.adata.uns = adata.uns
         self.adata.var = adata.var
+
+        if self.multimodal:
+            self.adata.var["modality"] = modality
         
         self.n_sample = self.X.shape[0]
         self.n_feature = self.X.shape[1]

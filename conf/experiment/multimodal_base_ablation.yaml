@@ -3,13 +3,6 @@ hydra:
   sweeper:
     params:
       random_seed: range(20, 21)
-      augmentation.gauss.sigma: 0.2
-      augmentation.gauss.noise_percentage: 0.8
-      augmentation.gauss.apply_prob: 0.5
-
-      augmentation.mask.mask_percentage: 0.2
-      augmentation.mask.apply_prob: 0.5
-      
       +model: simclr
       +data: pbmc_multimodal
       +augmentation: base

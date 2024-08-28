@@ -36,3 +36,45 @@ class OurDataset(Dataset):
             return [out_dict['x1'].squeeze().float(), out_dict['x2'].squeeze().float()], [index, index] #out_dict['x1'], out_dict['x2'], index
         else:
             return x.squeeze().float(), index
+
+
+class OurMultimodalDataset(Dataset):
+
+    def __init__(self, adata, transforms=None, valid_ids=None):
+        super().__init__()
+        self.transforms = transforms
+        self.adata = adata
+        
+        ix = adata.var["modality"] == 'RNA'
+        self.adata1 = adata[:, ix]
+        self.adata2 = adata[:, ix == False]
+
+        self.X1 = torch.tensor(self.adata1.X.toarray()) # this may be a caveat for large matrices; there, move to forward function: x = torch.tensor(self.X[index].toarray())
+        self.X2 = torch.tensor(self.adata2.X.toarray())
+
+        if valid_ids is None:
+            self.valid_cellidx = np.arange(len(self.adata1))
+        else:
+            self.valid_cellidx = valid_ids
+        self.n_samples = len(self.valid_cellidx)
+
+    """
+    TODO: How to handle when we remove cells during filtering?
+    """
+    def __len__(self):
+        return self.n_samples
+
+    def __getitem__(self, index):
+        #index = self.valid_cellidx[i]
+        x1 = self.X1[index].unsqueeze(0)
+        x2 = self.X2[index].unsqueeze(0)
+        if self.transforms is not None:
+            """
+            Can we optimize here? Remove the cell-ids-stuff? Remove the squeeze stuff?
+            """
+            out_dict_1 = self.transforms({'x1': x1, 'x2': x1, 'cell_ids': index})
+            out_dict_2 = self.transforms({'x1': x2, 'x2': x2, 'cell_ids': index})
+            return [out_dict_1['x1'].squeeze().float(), out_dict_1['x2'].squeeze().float(),
+                    out_dict_2['x1'].squeeze().float(), out_dict_2['x2'].squeeze().float()], [index, index] #out_dict['x1'], out_dict['x2'], index
+        else:
+            return [x1.squeeze().float(), x2.squeeze().float()], index

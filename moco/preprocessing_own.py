@@ -13,7 +13,7 @@ sc.settings.verbosity = configs.verbose
 # ====================================================
 # preprocessing for computing MNNs
 # ====================================================
-def preprocess_dataset(sps_x, cell_name, gene_name, df_meta, select_hvg=None, scale=False):
+def preprocess_dataset(sps_x, cell_name, gene_name, df_meta, select_hvg=None, scale=False, preprocess=True):
     # compute hvg first, anyway
     adata = sc.AnnData(sps.csr_matrix(sps_x.T))  # transposed, (gene, cell) -> (cell, gene)
     adata.obs_names = cell_name
@@ -21,9 +21,10 @@ def preprocess_dataset(sps_x, cell_name, gene_name, df_meta, select_hvg=None, sc
     adata.obs = df_meta.loc[cell_name].copy()
     adata.layers['counts'] = sps.csr_matrix(sps_x.T)
 
-    sc.pp.filter_genes(adata, min_cells=configs.min_cells) # 0
-    sc.pp.normalize_total(adata, target_sum=configs.scale_factor) # TODO : 10K oder 100K
-    sc.pp.log1p(adata)
+    if preprocess:
+        sc.pp.filter_genes(adata, min_cells=configs.min_cells) # 0
+        sc.pp.normalize_total(adata, target_sum=configs.scale_factor) # TODO : 10K oder 100K
+        sc.pp.log1p(adata)
 
     if select_hvg is not None:
         sc.pp.highly_variable_genes(adata, n_top_genes=min(adata.shape[1], select_hvg), 

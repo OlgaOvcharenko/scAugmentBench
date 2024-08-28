@@ -14,7 +14,7 @@ import pandas as pd
 from trainer import train_model
 from evaluator import evaluate_model
 from data.graph_augmentation_prep import *
-from data.dataset import OurDataset
+from data.dataset import OurDataset, OurMultimodalDataset
 from data.augmentations import * #get_transforms, augmentations
 from data.graph_augmentation_prep import * # builders for mnn and bbknn augmentation.
 
@@ -71,9 +71,45 @@ def load_data(config) -> sc.AnnData:
     
     return train_dataset, val_dataset, pm.adata
 
-# TODO new load data
-def load_data_multimodal(config):
-    pass
+
+def load_data_multimodal(config) -> sc.AnnData:
+    # config["augmentation"]
+    data_path = config["data"]["data_path"]
+    _LOGGER.info(f"Loading data from {data_path}")
+
+    augmentation_config = config["augmentation"] # using config["augmentation"]
+    
+    # FIXME add agumentations for 2 modalities
+    if config['augmentation']['bbknn']['apply_prob'] > 0:
+        _LOGGER.info("Preprocessing with bbknn.")
+        pm = BbknnAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['bbknn']['knn'],
+                     exclude_fn=False, trim_val=None)
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns)
+    elif config['augmentation']['mnn']['apply_prob'] > 0:
+        _LOGGER.info("Preprocessing with mnn.")
+        pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['mnn']['knn'],
+                     exclude_fn=False, filtering=True)
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns, mnn_dict=pm.mnn_dict)
+    else:
+        _LOGGER.info("Preprocessing without bbknn.")
+        pm = PreProcessingModule(data_path, select_hvg=None, scale=False, preprocess=False, multimodal=True)
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X)
+        _LOGGER.info("Augmentations generated.")
+    
+    transforms = Compose(augmentation_list)
+    
+    train_dataset = OurMultimodalDataset(adata=pm.adata,
+                               transforms=transforms, 
+                               valid_ids=None
+                               )
+    val_dataset = OurMultimodalDataset(adata=pm.adata,
+                             transforms=None,
+                             valid_ids=None
+                             )
+    
+    _LOGGER.info("Finished loading data.....")
+    
+    return train_dataset, val_dataset, pm.adata
 
 def reset_random_seeds(seed):
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
@@ -129,7 +165,10 @@ def main(cfg: DictConfig):
         _LOGGER.info(f"Successfully reset seeds.")
         print(cfg)
 
-    train_dataset, val_dataset, ad = load_data(cfg)
+    if "_multimodal" in cfg["data"]["data_path"]:
+        train_dataset, val_dataset, ad = load_data_multimodal(cfg)
+    else:
+        train_dataset, val_dataset, ad = load_data(cfg)
 
     _LOGGER.info(f"Start training ({cfg['model']['model']})")
     _LOGGER.info(f"CUDA available: {torch.cuda.is_available()}")

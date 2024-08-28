@@ -433,6 +433,31 @@ def prepare_PBMCMultome(data_root):
     cname = np.array(meta.index)
     return X, share_gene, cname, meta
 
+def prepare_PBMC_Multimodal(data_root):
+    adata_RNA = sc.read_h5ad(join(data_root, 'adata_RNA_full.h5ad'))
+    adata_Protein = sc.read_h5ad(join(data_root, 'adata_Protein_full.h5ad'))
+
+    train_idx = (adata_RNA.obs["batch"] != "P5") & (adata_RNA.obs["batch"] != "P8") & (adata_RNA.obs["cell_type"] != "B intermediate") & (adata_RNA.obs["cell_type"] != "B memory") & (adata_RNA.obs["cell_type"] != "B naive") & (adata_RNA.obs["cell_type"] != "Plasmablast")
+    # test_idx = (train_idx != 1)
+
+    X_RNA = adata_RNA.X.A.T  # gene by cell
+    X_Protein = adata_Protein.X.A.T  # gene by cell
+
+    X = np.vstack([X_RNA, X_Protein])
+
+    gene_name = np.concatenate([adata_RNA.var_names.values, adata_Protein.var_names.values])
+    cell_name = adata_RNA.obs_names.values
+
+    batch_key, label_key, query_reference_key = "batch", "cell_type_l1", "query_reference"
+    df_meta = adata_RNA.obs[[batch_key, label_key]].copy()
+    df_meta[query_reference_key] = train_idx
+
+    modality = ["RNA"] * X_RNA.shape[0] + ["Protein"] * X_Protein.shape[0]
+
+    df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
+    df_meta[configs.label_key] = df_meta[label_key].astype('category')
+
+    return X, gene_name, cell_name, [df_meta, modality]
 
 # Function taken from concerto
 def preprocessing_rna(
@@ -778,6 +803,7 @@ def prepare_dataset(data_dir):
                     'MouseCellAtlas': prepare_MouseCellAtlas, 
                     'Pancreas': prepare_Pancreas, 
                     'PBMC': prepare_PBMC,
+                    'PBMC_multimodal': prepare_PBMC_Multimodal, 
                     'PBMCFull': prepare_PBMC_Full, 
                     'CellLine': prepare_CellLine, 
                     'MouseRetina': prepare_MouseRetina, 
