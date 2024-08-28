@@ -43,14 +43,14 @@ def load_data(config) -> sc.AnnData:
         _LOGGER.info("Preprocessing with bbknn.")
         pm = BbknnAugment(data_path, select_hvg=config["data"]["n_hvgs"], 
                           scale=False, knn=augmentation_config['bbknn']['knn'],
-                          exclude_fn=False, trim_val=None, kwargs=config["data"]
+                          exclude_fn=False, trim_val=None, holdout_batch=config["data"]["holdout_batch"]
                           )
         augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns)
     elif config['augmentation']['mnn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with mnn.")
         pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"],
                            scale=False, knn=augmentation_config['mnn']['knn'],
-                           exclude_fn=False, filtering=True, kwargs=config["data"])
+                           exclude_fn=False, filtering=True, holdout_batch=config["data"]["holdout_batch"])
         augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns, mnn_dict=pm.mnn_dict)
     else:
         _LOGGER.info("Preprocessing without bbknn.")

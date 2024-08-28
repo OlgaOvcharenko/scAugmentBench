@@ -25,26 +25,24 @@ def get_augmentation_list(config, X, nns=None, mnn_dict=None):
                 InnerSwap_Augment(**config['innerswap']),
                 CrossOver_Augment(X=X, **config['crossover']),]
     else:
-        return [Mask_Augment(**config['mask']), 
-                Gauss_Augment(**config['gauss']),
+        return [Gauss_Augment(**config['gauss']),
                 InnerSwap_Augment(**config['innerswap']),
                 CrossOver_Augment(X=X, **config['crossover']),
-                Bbknn_Augment(X=X, nns=nns, **config['bbknn'])]
+                Bbknn_Augment(X=X, nns=nns, **config['bbknn']),
+                Mask_Augment(**config['mask']),]
 
 def get_transforms(transform_list):
     return Compose(transform_list)
 
 # x_bar = x*lambda + x_p*(1-lambda)
 def interpolation(x, x_p, alpha):
-    lamda = (alpha - 1.0) * rand(1) + 1
-    #lamda = np.random.uniform(alpha, 1.)  # [alpha, 1.]
-    x = lamda * x + (1 - lamda) * x_p
+    #lamda = (alpha - 1.0) * rand(1) + 1
+    x = alpha * x + (1 - alpha) * x_p
     return x
 
 # x_bar = x^lambda + x_p^(1-lambda)
 def geo_interpolation(x, x_p, alpha):
     lamda = (alpha - 1.0) * rand(1) + 1
-    #lamda = np.random.uniform(alpha, 1.)  # [alpha, 1.]
     x = (x**lamda) * (x_p**(1-lamda))
     return x
 

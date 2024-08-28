@@ -13,5 +13,5 @@ hydra:
   job:
     name: ${random_seed}  # Set the job name to the model name
   sweep:
-    dir: qr-vol0/
+    dir: qr-ablation-vol0/
     subdir: ${data.dname}/${model.model}/${random_seed}

@@ -1,14 +1,14 @@
 mnn:
   alpha: 0.5
   apply_prob: 0
-  augment_set: ['int','exc']
+  augment_set: ['int']
   nsize: 1
   knn: 10
 
 bbknn:
   alpha: 0.5
   apply_prob: 0
-  augment_set: ['int','exc']
+  augment_set: ['exc','int']
   nsize: 1
   knn: 10
 
