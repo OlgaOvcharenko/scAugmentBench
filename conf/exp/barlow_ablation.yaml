@@ -13,5 +13,5 @@ hydra:
   job:
     name: ${random_seed}
   sweep:
-    dir: barlow/
+    dir: ablation-db/barlow/
     subdir: ${data.dname}/${model.model}/${random_seed}

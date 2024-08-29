@@ -1,9 +1,0 @@
-- random_seed=20
-- model.hidden_dim=128
-- model.hidden_dim_2=32
-- model.training.max_epochs=100
-- +model=byol
-- +data=immune
-- +augmentation=clear_pipeline
-- logging.project=architecture-ablation_vol1
-- +exp=barlow_ablation
