@@ -1,9 +1,0 @@
-- random_seed=20
-- model.hidden_dim=128
-- model.training.max_epochs=1
-- +model=moco
-- +data=pbmc
-- +augmentation=clear_pipeline
-- logging.project=architecture-ablation_vol1
-- +exp=clear_pipeline_data_integration
-- debug=True
