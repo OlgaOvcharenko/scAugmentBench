@@ -139,14 +139,10 @@ class BYOLModule(pl.LightningModule):
         self.batch_size = batch_size
         self.criterion = SymNegCosineSimilarityLoss()
     
-    """# only used when not training, therefore turn off gradients.
-    def forward(self, x):
-        with torch.no_grad():
-            self.projector_and_predictor(x)"""
-
     def training_step(self, batch, batch_idx):
         #(x0, x1), (id0, id1) = batch
         x0, x1 = batch[0]
+        x0, x1 = self.backbone(x0), self.backbone(x1)
         y0, y1 = self.projector_and_predictor(x0, x1)
         # TODO: symmetrize the outputs of byol and calculate the loss
         loss = self.criterion(y0, y1)
@@ -155,7 +151,9 @@ class BYOLModule(pl.LightningModule):
     
     def predict(self, x):
         with torch.no_grad():
-            return self.projector_and_predictor(x, x)[0][1]
+            z = self.backbone(x)
+            return z
+            #return self.projector_and_predictor(x, x)[0][1]
             
     def configure_optimizers(self):
         return optimizer_builder(self)

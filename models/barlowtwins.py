@@ -26,7 +26,8 @@ class BarlowTwins(pl.LightningModule):
     
     def predict(self, x):
         with torch.no_grad():
-            return self(x)
+            z = self.backbone(x)
+            return z
 
     def training_step(self, batch, batch_index):
         x0, x1 = batch[0]
