@@ -153,7 +153,7 @@ def main(cfg: DictConfig):
                                             dataset=val_dataset,
                                             adata=ad,
                                             batch_size=cfg["model"]["training"]["batch_size"],
-                                            num_workers=14,
+                                            num_workers=8,
                                             logger=_LOGGER,
                                             embedding_save_path=results_dir.joinpath("embedding.npz")
                                         )

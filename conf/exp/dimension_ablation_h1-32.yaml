@@ -5,6 +5,7 @@ hydra:
       random_seed: range(20, 25)
       model.hidden_dim: 32
       model.hidden_dim_2: 32
+      model.out_dim: 32
       +model: barlowtwins, byol, moco, vicreg, simclr, simsiam, nnclr
       +data: mouse, immune
       +augmentation: clear_pipeline
