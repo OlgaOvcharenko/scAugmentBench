@@ -2,7 +2,7 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 25)
+      random_seed: range(20, 23)
       model.hidden_dim: 64
       model.hidden_dim_2: 64
       model.out_dim: 64

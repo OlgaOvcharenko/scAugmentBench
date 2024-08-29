@@ -135,12 +135,13 @@ def main(cfg: DictConfig):
     cfg['model']['in_dim'] = train_dataset.n_genes
 
     start = time.time()
-    model = train_model(dataset=train_dataset, 
+    model = train_model(dataset=train_dataset,
                         model_config=cfg["model"],
                         random_seed=random_seed, 
                         batch_size=cfg["model"]["training"]["batch_size"],
                         num_workers=14,
                         n_epochs=cfg["model"]["training"]["max_epochs"],
+                        ckpt_dir=results_dir,
                         logger=_LOGGER)
     run_time = time.time() - start
     _LOGGER.info(f"Training of the model took {round(run_time, 3)} seconds.")

@@ -24,12 +24,50 @@ from data.dataset import OurDataset
 
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
-
+import os
 
 _model_dict = {"BYOL": BYOLModule, "BarlowTwins": BarlowTwins, "MoCo": MoCo, "VICReg": VICReg, "SimCLR": SimCLR, "SimSiam": SimSiam, "NNCLR": NNCLR, "Concerto": Concerto}
 
+
+class CheckpointEveryNSteps(pl.Callback):
+    """
+    Save a checkpoint every N steps, instead of Lightning's default that checkpoints
+    based on validation loss.
+    """
+
+    def __init__(
+        self,
+        save_step_frequency,
+        prefix="checkpoint",
+        use_modelcheckpoint_filename=False,
+    ):
+        """
+        Args:
+            save_step_frequency: how often to save in steps
+            prefix: add a prefix to the name, only used if
+                use_modelcheckpoint_filename=False
+            use_modelcheckpoint_filename: just use the ModelCheckpoint callback's
+                default filename, don't use ours.
+        """
+        self.save_step_frequency = save_step_frequency
+        self.prefix = prefix
+        self.use_modelcheckpoint_filename = use_modelcheckpoint_filename
+
+    def on_train_epoch_end(self, trainer: pl.Trainer, _):
+        """ Check if we should save a checkpoint after every train batch """
+        epoch = trainer.current_epoch
+        print(epoch)
+        if epoch % self.save_step_frequency == 0:
+            if self.use_modelcheckpoint_filename:
+                filename = trainer.checkpoint_callback.filename
+            else:
+                filename = f"{self.prefix}_{epoch=}_{epoch=}.ckpt"
+            ckpt_path = os.path.join(trainer.checkpoint_callback.dirpath, filename)
+            trainer.save_checkpoint(ckpt_path)
+
+
 def train_model(dataset, model_config, random_seed, batch_size, 
-                num_workers, n_epochs, logger, cfg=None):
+                num_workers, n_epochs, logger, ckpt_dir, cfg=None):
     model_name = model_config["model"]
 
     train_loader = torch.utils.data.DataLoader(
@@ -46,7 +84,8 @@ def train_model(dataset, model_config, random_seed, batch_size,
     print(model_config)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    trainer = pl.Trainer(max_epochs=n_epochs, accelerator=device) # cpu works for smaller tasks!!
+    print(ckpt_dir)
+    trainer = pl.Trainer(max_epochs=n_epochs, accelerator=device, default_root_dir=ckpt_dir, callbacks=[CheckpointEveryNSteps(save_step_frequency=25)]) # cpu works for smaller tasks!!
     logger.info(f".. Model ready. Now train on {device}.")
     
     try:
