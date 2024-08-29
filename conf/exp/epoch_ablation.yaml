@@ -11,5 +11,5 @@ hydra:
   job:
     name: ${random_seed}  # Set the job name to the model name
   sweep:
-    dir: epoch-ablation/
+    dir: ablation-db/epoch-ablation/
     subdir: ${data.dname}/${model.model}/${model.training.max_epochs}/${random_seed}

@@ -12,5 +12,5 @@ hydra:
   job:
     name: ${random_seed}
   sweep:
-    dir: clear-pipeline-data-integration-eval/
+    dir: ablation-db/clear-pipeline-data-integration-eval/
     subdir: ${data.dname}/${model.model}/${random_seed}

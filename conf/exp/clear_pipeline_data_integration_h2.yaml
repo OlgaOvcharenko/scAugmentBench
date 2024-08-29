@@ -4,7 +4,7 @@ hydra:
     params:
       random_seed: range(20, 25)
       model.hidden_dim: 128
-      +model.hidden_dim_2: 64
+      model.hidden_dim_2: 64
       model.training.max_epochs: 1
       +model: moco, simclr, nnclr, simsiam #barlowtwins????
       +data: mouse, immune, lung, pbmc, pancreas
@@ -13,5 +13,5 @@ hydra:
   job:
     name: ${random_seed}
   sweep:
-    dir: clear-pipeline-data-integration-eval/
+    dir: ablation-db/clear-pipeline-data-integration-eval/
     subdir: ${data.dname}/${model.model}/${random_seed}

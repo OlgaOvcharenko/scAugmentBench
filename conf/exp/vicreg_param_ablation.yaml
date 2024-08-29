@@ -15,5 +15,5 @@ hydra:
   job:
     name: ${random_seed}
   sweep:
-    dir: vicreg-ablation/
+    dir: ablation-db/vicreg-ablation/
     subdir: ${data.dname}/${model.reg_lambda}/${model.reg_alpha}/${model.reg_beta}/${random_seed}
