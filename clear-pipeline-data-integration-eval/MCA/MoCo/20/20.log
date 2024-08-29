@@ -1,0 +1,22 @@
+[2024-08-29 16:48:43,611][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/MCA/MoCo/20
+[2024-08-29 16:48:43,643][__main__][INFO] - Set random seed to 20
+[2024-08-29 16:48:43,643][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 16:48:43,644][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/MouseCellAtlas
+[2024-08-29 16:48:43,644][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 16:48:45,307][__main__][INFO] - Augmentations generated.
+[2024-08-29 16:48:45,596][__main__][INFO] - Finished loading data.....
+[2024-08-29 16:48:45,596][__main__][INFO] - Start training (MoCo)
+[2024-08-29 16:48:45,597][__main__][INFO] - CUDA available: True
+[2024-08-29 16:48:45,597][__main__][INFO] - .. Dataloader ready. Now build MoCo
+[2024-08-29 16:48:45,764][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 16:48:47,831][__main__][INFO] - .. Training done.
+[2024-08-29 16:48:47,832][__main__][INFO] - Training of the model took 2.235 seconds.
+[2024-08-29 16:48:47,832][__main__][INFO] - Running SCIB-Benchmark Evaluation.
+[2024-08-29 16:48:48,447][__main__][INFO] - Inferred embedding of shape (6954, 12)
+[2024-08-29 16:48:58,547][root][INFO] - isolated labels: no more than 2 batches per label
+[2024-08-29 16:48:58,826][jax._src.xla_bridge][INFO] - Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+[2024-08-29 16:48:58,838][jax._src.xla_bridge][INFO] - Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+[2024-08-29 16:52:44,700][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/MCA/MoCo/20
+[2024-08-29 16:52:44,700][__main__][INFO] - Embedding at /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/MCA/MoCo/20 already exists.
+[2024-08-29 17:04:52,910][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/MCA/MoCo/20
+[2024-08-29 17:04:52,910][__main__][INFO] - Embedding at /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/MCA/MoCo/20 already exists.

@@ -17,6 +17,7 @@ class OurDataset(Dataset):
         else:
             self.valid_cellidx = valid_ids
         self.n_samples = len(self.valid_cellidx)
+        self.n_genes = self.X.shape[1]
 
     """
     TODO: How to handle when we remove cells during filtering?

@@ -43,6 +43,8 @@ def train_model(dataset, model_config, random_seed, batch_size,
 
     model = _model_dict[str(model_name)](**model_config)
     
+    print(model_config)
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     trainer = pl.Trainer(max_epochs=n_epochs, accelerator=device) # cpu works for smaller tasks!!
     logger.info(f".. Model ready. Now train on {device}.")

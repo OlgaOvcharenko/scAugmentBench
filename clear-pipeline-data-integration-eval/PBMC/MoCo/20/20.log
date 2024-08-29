@@ -1,0 +1,88 @@
+[2024-08-29 16:53:20,146][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 16:53:20,146][__main__][INFO] - Set random seed to 20
+[2024-08-29 16:53:20,146][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 16:53:20,147][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 16:53:20,147][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 16:53:26,055][__main__][INFO] - Augmentations generated.
+[2024-08-29 16:53:26,674][__main__][INFO] - Finished loading data.....
+[2024-08-29 16:53:26,674][__main__][INFO] - Start training (MoCo)
+[2024-08-29 16:53:26,674][__main__][INFO] - CUDA available: True
+[2024-08-29 16:53:26,675][__main__][INFO] - .. Dataloader ready. Now build MoCo
+[2024-08-29 16:53:26,688][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 16:53:27,256][__main__][INFO] - Training of the model took 0.581 seconds.
+[2024-08-29 17:05:26,977][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 17:05:26,988][__main__][INFO] - Set random seed to 20
+[2024-08-29 17:05:26,988][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 17:05:26,988][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 17:05:26,988][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 17:05:30,976][__main__][INFO] - Augmentations generated.
+[2024-08-29 17:05:31,593][__main__][INFO] - Finished loading data.....
+[2024-08-29 17:05:31,594][__main__][INFO] - Start training (MoCo)
+[2024-08-29 17:05:31,594][__main__][INFO] - CUDA available: True
+[2024-08-29 17:05:31,594][__main__][INFO] - .. Dataloader ready. Now build MoCo
+[2024-08-29 17:05:31,703][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 17:05:32,491][__main__][INFO] - Training of the model took 0.897 seconds.
+[2024-08-29 17:06:21,513][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 17:06:21,524][__main__][INFO] - Set random seed to 20
+[2024-08-29 17:06:21,524][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 17:06:21,524][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 17:06:21,524][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 17:06:25,461][__main__][INFO] - Augmentations generated.
+[2024-08-29 17:06:26,090][__main__][INFO] - Finished loading data.....
+[2024-08-29 17:06:26,091][__main__][INFO] - Start training (MoCo)
+[2024-08-29 17:06:26,091][__main__][INFO] - CUDA available: True
+[2024-08-29 17:06:26,091][__main__][INFO] - .. Dataloader ready. Now build MoCo
+[2024-08-29 17:06:26,200][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 17:06:26,968][__main__][INFO] - Training of the model took 0.877 seconds.
+[2024-08-29 17:07:41,569][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 17:07:41,580][__main__][INFO] - Set random seed to 20
+[2024-08-29 17:07:41,580][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 17:07:41,580][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 17:07:41,580][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 17:07:45,559][__main__][INFO] - Augmentations generated.
+[2024-08-29 17:07:46,175][__main__][INFO] - Finished loading data.....
+[2024-08-29 17:07:46,175][__main__][INFO] - Start training (MoCo)
+[2024-08-29 17:07:46,176][__main__][INFO] - CUDA available: True
+[2024-08-29 17:07:46,176][__main__][INFO] - .. Dataloader ready. Now build MoCo
+[2024-08-29 17:07:46,283][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 17:07:47,056][__main__][INFO] - Training of the model took 0.881 seconds.
+[2024-08-29 17:09:31,488][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 17:09:31,499][__main__][INFO] - Set random seed to 20
+[2024-08-29 17:09:31,499][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 17:09:31,500][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 17:09:31,500][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 17:09:35,449][__main__][INFO] - Augmentations generated.
+[2024-08-29 17:09:36,064][__main__][INFO] - Finished loading data.....
+[2024-08-29 17:09:36,065][__main__][INFO] - Start training (MoCo)
+[2024-08-29 17:09:36,065][__main__][INFO] - CUDA available: True
+[2024-08-29 17:09:36,066][__main__][INFO] - .. Dataloader ready. Now build MoCo
+[2024-08-29 17:09:36,187][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 17:09:36,990][__main__][INFO] - Training of the model took 0.925 seconds.
+[2024-08-29 17:14:05,253][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 17:14:05,264][__main__][INFO] - Set random seed to 20
+[2024-08-29 17:14:05,264][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 17:14:05,264][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 17:14:05,265][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 17:17:42,497][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 17:17:42,508][__main__][INFO] - Set random seed to 20
+[2024-08-29 17:17:42,508][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 17:17:42,508][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 17:17:42,508][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 17:18:17,546][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 17:18:17,557][__main__][INFO] - Set random seed to 20
+[2024-08-29 17:18:17,557][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 17:18:17,557][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 17:18:17,557][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 17:19:26,657][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/PBMC/MoCo/20
+[2024-08-29 17:19:26,668][__main__][INFO] - Set random seed to 20
+[2024-08-29 17:19:26,668][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 17:19:26,668][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/PBMCFull
+[2024-08-29 17:19:26,669][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 17:19:30,618][__main__][INFO] - Augmentations generated.
+[2024-08-29 17:19:31,233][__main__][INFO] - Finished loading data.....
+[2024-08-29 17:19:31,234][__main__][INFO] - Start training (MoCo)
+[2024-08-29 17:19:31,234][__main__][INFO] - CUDA available: True
+[2024-08-29 17:19:31,234][__main__][INFO] - .. Dataloader ready. Now build MoCo
+[2024-08-29 17:19:31,341][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 17:19:34,764][__main__][INFO] - .. Training done.
+[2024-08-29 17:19:34,764][__main__][INFO] - Training of the model took 3.53 seconds.

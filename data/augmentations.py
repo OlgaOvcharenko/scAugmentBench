@@ -11,25 +11,25 @@ import torch.nn as nn
 from torch import bernoulli, rand, normal # rand is the uniform distribution [0, 1) 
 
 
-def get_augmentation_list(config, X, nns=None, mnn_dict=None):
+def get_augmentation_list(config, X, nns=None, mnn_dict=None, input_shape=(1,4000)):
     # TODO: Implement possibility for reordering of augmentations.
+    print(input_shape)
     if nns is None:
-        return [Mask_Augment(**config['mask']), 
-                Gauss_Augment(**config['gauss']),
-                InnerSwap_Augment(**config['innerswap']),
-                CrossOver_Augment(X=X, **config['crossover']),]
+        return [Mask_Augment(input_shape=input_shape, **config['mask']), 
+                Gauss_Augment(input_shape=input_shape, **config['gauss']),
+                InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
+                CrossOver_Augment(X=X, input_shape=input_shape, **config['crossover']),]
     elif mnn_dict is not None:
         return [Mnn_Augment(X=X, mnn_dict=mnn_dict, nns=nns, **config['mnn']),
-                Mask_Augment(**config['mask']), 
-                Gauss_Augment(**config['gauss']),
-                InnerSwap_Augment(**config['innerswap']),
-                CrossOver_Augment(X=X, **config['crossover']),]
+                Gauss_Augment(input_shape=input_shape, **config['gauss']),
+                InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
+                Mask_Augment(input_shape=input_shape, **config['mask']),]
     else:
-        return [Gauss_Augment(**config['gauss']),
-                InnerSwap_Augment(**config['innerswap']),
-                CrossOver_Augment(X=X, **config['crossover']),
+        return [Gauss_Augment(input_shape=input_shape, **config['gauss']),
+                InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
+                CrossOver_Augment(X=X, input_shape=input_shape, **config['crossover']),
                 Bbknn_Augment(X=X, nns=nns, **config['bbknn']),
-                Mask_Augment(**config['mask']),]
+                Mask_Augment(input_shape=input_shape,**config['mask']),]
 
 def get_transforms(transform_list):
     return Compose(transform_list)
@@ -118,7 +118,7 @@ class Mnn_Augment(nn.Module):
 
 class Gauss_Augment(nn.Module):
     
-    def __init__(self, noise_percentage: float=0.2, sigma: float=0.5, apply_prob: float=0.3,input_shape=(1, 4000)):
+    def __init__(self, noise_percentage: float=0.2, sigma: float=0.5, apply_prob: float=0.3, input_shape=(1, 4000)):
         super().__init__()
         self.apply_thresh = apply_prob
         self.noise_percentage = noise_percentage

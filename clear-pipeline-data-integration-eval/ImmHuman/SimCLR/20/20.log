@@ -1,0 +1,13 @@
+[2024-08-29 16:53:39,556][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/ImmHuman/SimCLR/20
+[2024-08-29 16:53:39,556][__main__][INFO] - Set random seed to 20
+[2024-08-29 16:53:39,556][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 16:53:39,556][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/ImmHuman
+[2024-08-29 16:53:39,556][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 16:53:49,982][__main__][INFO] - Augmentations generated.
+[2024-08-29 16:53:50,676][__main__][INFO] - Finished loading data.....
+[2024-08-29 16:53:50,677][__main__][INFO] - Start training (SimCLR)
+[2024-08-29 16:53:50,677][__main__][INFO] - CUDA available: True
+[2024-08-29 16:53:50,677][__main__][INFO] - .. Dataloader ready. Now build SimCLR
+[2024-08-29 16:53:50,689][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 16:53:53,907][__main__][INFO] - .. Training done.
+[2024-08-29 16:53:53,907][__main__][INFO] - Training of the model took 3.23 seconds.

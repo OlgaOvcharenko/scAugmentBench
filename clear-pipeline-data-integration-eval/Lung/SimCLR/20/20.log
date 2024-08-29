@@ -1,0 +1,13 @@
+[2024-08-29 16:53:54,078][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/Lung/SimCLR/20
+[2024-08-29 16:53:54,078][__main__][INFO] - Set random seed to 20
+[2024-08-29 16:53:54,078][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 16:53:54,078][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/Lung
+[2024-08-29 16:53:54,078][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 16:54:07,176][__main__][INFO] - Augmentations generated.
+[2024-08-29 16:54:07,845][__main__][INFO] - Finished loading data.....
+[2024-08-29 16:54:07,845][__main__][INFO] - Start training (SimCLR)
+[2024-08-29 16:54:07,846][__main__][INFO] - CUDA available: True
+[2024-08-29 16:54:07,846][__main__][INFO] - .. Dataloader ready. Now build SimCLR
+[2024-08-29 16:54:07,858][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 16:54:10,990][__main__][INFO] - .. Training done.
+[2024-08-29 16:54:10,990][__main__][INFO] - Training of the model took 3.145 seconds.

@@ -1,0 +1,13 @@
+[2024-08-29 16:53:27,500][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/clear-pipeline-data-integration-eval/Pancreas/MoCo/20
+[2024-08-29 16:53:27,500][__main__][INFO] - Set random seed to 20
+[2024-08-29 16:53:27,500][__main__][INFO] - Successfully reset seeds.
+[2024-08-29 16:53:27,500][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/Pancreas
+[2024-08-29 16:53:27,501][__main__][INFO] - Preprocessing without bbknn.
+[2024-08-29 16:53:33,899][__main__][INFO] - Augmentations generated.
+[2024-08-29 16:53:34,499][__main__][INFO] - Finished loading data.....
+[2024-08-29 16:53:34,499][__main__][INFO] - Start training (MoCo)
+[2024-08-29 16:53:34,500][__main__][INFO] - CUDA available: True
+[2024-08-29 16:53:34,500][__main__][INFO] - .. Dataloader ready. Now build MoCo
+[2024-08-29 16:53:34,513][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-08-29 16:53:36,368][__main__][INFO] - .. Training done.
+[2024-08-29 16:53:36,369][__main__][INFO] - Training of the model took 1.869 seconds.
