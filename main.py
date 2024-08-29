@@ -153,9 +153,8 @@ def main(cfg: DictConfig):
                                             batch_size=cfg["model"]["training"]["batch_size"],
                                             num_workers=14,
                                             logger=_LOGGER,
-                                            )
-        #_LOGGER.info(f"Results:\n{results}")
-        np.savez_compressed(results_dir.joinpath("embedding.npz"), embedding)
+                                            embedding_save_path=results_dir.joinpath("embedding.npz")
+                                        )
         try:
             results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)
         except:

@@ -32,7 +32,7 @@ def infer_embedding(model, val_loader):
     return embedding
 
 
-def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
+def evaluate_model(model, adata, dataset, batch_size, num_workers, logger, embedding_save_path,
                    batch_key="batchlb", cell_type_label="CellType",):
     val_loader = torch.utils.data.DataLoader(
                     dataset,
@@ -41,6 +41,8 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
                     shuffle=False,
                     drop_last=False)
     embedding = infer_embedding(model, val_loader)
+    np.savez_compressed(embedding_save_path, embedding)
+
     logger.info(f"Inferred embedding of shape {embedding.shape}")
     adata.obsm["Embedding"] = embedding
     try:
@@ -55,12 +57,12 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
                 )
         bm.benchmark()
         a = bm.get_results(False, True)
-        results = a[:1]
+        results = a[:1].astype(float).round(4)
     except Exception as error:
         results = None
         logger.info(".. An exception occured while evaluating:", error)
 
-    return results.astype(float).round(4), embedding
+    return results, embedding
 
 
 def recalculate_results(adata, embedding, num_workers,
