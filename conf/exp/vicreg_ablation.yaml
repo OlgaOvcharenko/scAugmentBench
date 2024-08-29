@@ -1,0 +1,19 @@
+# @package _global_
+hydra:
+  sweeper:
+    params:
+      random_seed: range(20, 25)
+      model.hidden_dim: 128
+      model.reg_lambda: choice(1.0, 5.0, 10.0, 25.0)
+      model.reg_alpha: choice(1.0, 5.0, 10.0, 25.0)
+      model.reg_beta: choice(1.0, 5.0, 10.0)
+      model.training.max_epochs: 100
+      +model: vicreg
+      +data: mouse, immune
+      +augmentation: clear_pipeline
+      logging.project: architecture-ablation_vol1
+  job:
+    name: ${random_seed}
+  sweep:
+    dir: ablation-db/vicreg-ablation/
+    subdir: ${data.dname}/${model.reg_lambda}/${model.reg_alpha}/${model.reg_beta}/${random_seed}
