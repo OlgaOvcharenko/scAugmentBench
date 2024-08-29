@@ -72,8 +72,8 @@ class OurMultimodalDataset(Dataset):
             """
             Can we optimize here? Remove the cell-ids-stuff? Remove the squeeze stuff?
             """
-            out_dict_1 = self.transforms({'x1': x1, 'x2': x1, 'cell_ids': index})
-            out_dict_2 = self.transforms({'x1': x2, 'x2': x2, 'cell_ids': index})
+            out_dict_1 = self.transforms[0]({'x1': x1, 'x2': x1, 'cell_ids': index})
+            out_dict_2 = self.transforms[1]({'x1': x2, 'x2': x2, 'cell_ids': index})
             return [out_dict_1['x1'].squeeze().float(), out_dict_1['x2'].squeeze().float(),
                     out_dict_2['x1'].squeeze().float(), out_dict_2['x2'].squeeze().float()], [index, index] #out_dict['x1'], out_dict['x2'], index
         else:

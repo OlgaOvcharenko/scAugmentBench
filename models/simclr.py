@@ -6,7 +6,7 @@ from lightly.loss.ntx_ent_loss import NTXentLoss
 from lightly.models.modules.heads import SimCLRProjectionHead
 
 from utils.train_utils import *
-from models.model_utils import get_backbone
+from models.model_utils import get_backbone, clip_loss
 
 import lightning as pl
 
@@ -17,8 +17,11 @@ class SimCLR(pl.LightningModule):
         super().__init__()
 
         self.multimodal = multimodal
-        self.integrate = integrate
+        
         if self.multimodal:
+            self.integrate = integrate
+            self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+
             self.backbone1 = get_backbone(in_dim, hidden_dim, **kwargs)
             self.projection_head1 = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
 
@@ -47,7 +50,17 @@ class SimCLR(pl.LightningModule):
     
     def predict(self, x):
         with torch.no_grad():
-            return self(x)
+            if self.multimodal:
+                z1_0, z1_1 = self(x)
+                if self.integrate == "add":
+                    z0 = z1_0 + z1_1
+                elif self.integrate == "mean":
+                    z0 = (z1_0 + z1_1) / 2
+                else:
+                    z0 = torch.cat((z1_0, z1_1), 1)
+                return z0
+            else:
+                return self(x)
 
     def training_step(self, batch, batch_index):
         if self.multimodal:
@@ -55,18 +68,22 @@ class SimCLR(pl.LightningModule):
             x0 = [x1_1, x1_2]
             x1 = [x2_1, x2_2]
             
-            z1_0, z1_1 = self.forward(x0) # RNA
-            z2_0, z2_1 = self.forward(x1) # Protein
+            z1_0, z1_1 = self.forward(x0) # RNA, Protein
+            z2_0, z2_1 = self.forward(x1) # RNA, Protein
 
             if self.integrate == "add":
-                z0 = z1_0 + z2_0
-                z1 = z1_1 + z2_1
+                z0 = z1_0 + z1_1
+                z1 = z2_0 + z2_1
             elif self.integrate == "mean":
-                z0 = (z1_0 + z2_0) / 2
-                z1 = (z1_1 + z2_1) / 2
+                z0 = (z1_0 + z1_1) / 2
+                z1 = (z2_0 + z2_1) / 2
             elif self.integrate == "concat":
                 z0 = torch.cat((z1_0, z1_1), 1)
                 z1 = torch.cat((z2_0, z2_1), 1)
+            elif self.integrate == "clip":
+                loss = 0.5 * (clip_loss(z1_0, z1_1) + clip_loss(z2_0, z2_1))
+                return loss
+
             else:
                 raise Exception("Invalid integration method.")
 

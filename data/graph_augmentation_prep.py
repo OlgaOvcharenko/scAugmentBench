@@ -115,8 +115,10 @@ class ClaireAugment(PreProcessingModule):
             exclude_fn=True,
             k_anchor=5,
             filtering=True, 
+            preprocess=True,
+            multimodal=False
         ):
-        super().__init__(data_dir, select_hvg, scale)
+        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal)
         self.k_anchor = k_anchor
         self.knn = knn
         self.exclude_fn = exclude_fn
@@ -322,8 +324,10 @@ class BbknnAugment(PreProcessingModule):
             knn = 10, # defines number of neighbors to compute
             exclude_fn=False,
             trim_val=None, 
+            preprocess=True,
+            multimodal=False
         ):
-        super().__init__(data_dir, select_hvg, scale)
+        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal)
         self.knn = knn
         self.exclude_fn = exclude_fn
         self.trim = trim_val

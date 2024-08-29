@@ -82,21 +82,32 @@ def load_data_multimodal(config) -> sc.AnnData:
     # FIXME add agumentations for 2 modalities
     if config['augmentation']['bbknn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with bbknn.")
-        pm = BbknnAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['bbknn']['knn'],
-                     exclude_fn=False, trim_val=None)
-        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns)
+        pm = BbknnAugment(data_path, select_hvg=None, scale=False, knn=augmentation_config['bbknn']['knn'],
+                     exclude_fn=False, trim_val=None, preprocess=False, multimodal=True)
+        augmentation_list1 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] == 'RNA'], nns=pm.nns)
+        augmentation_list2 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] != 'RNA'], nns=pm.nns)
+
     elif config['augmentation']['mnn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with mnn.")
         pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['mnn']['knn'],
-                     exclude_fn=False, filtering=True)
-        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns, mnn_dict=pm.mnn_dict)
+                     exclude_fn=False, filtering=True, preprocess=False, multimodal=True)
+        augmentation_list1 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] == 'RNA'], nns=pm.nns, mnn_dict=pm.mnn_dict)
+        augmentation_list2 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] != 'RNA'], nns=pm.nns, mnn_dict=pm.mnn_dict)
+
     else:
         _LOGGER.info("Preprocessing without bbknn.")
         pm = PreProcessingModule(data_path, select_hvg=None, scale=False, preprocess=False, multimodal=True)
-        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X)
-        _LOGGER.info("Augmentations generated.")
+        augmentation_list1 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] == 'RNA'])
+        augmentation_list2 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] != 'RNA'])
+
+    _LOGGER.info("Augmentations generated.")
+
+    print(augmentation_list1)
+    print(augmentation_list2)
     
-    transforms = Compose(augmentation_list)
+    transforms1 = Compose(augmentation_list1)
+    transforms2 = Compose(augmentation_list2)
+    transforms = [transforms1, transforms2]
     
     train_dataset = OurMultimodalDataset(adata=pm.adata,
                                transforms=transforms, 
@@ -188,7 +199,7 @@ def main(cfg: DictConfig):
                                         dataset=val_dataset,
                                         adata=ad,
                                         batch_size=cfg["model"]["training"]["batch_size"],
-                                        num_workers=14,
+                                        num_workers=4,
                                         logger=_LOGGER,
                                         )
     #_LOGGER.info(f"Results:\n{results}")

@@ -2,13 +2,14 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 21)
-      +model: simclr
+      random_seed: range(20, 25)
+      +model: simclr, moco
       +data: pbmc_multimodal
       +augmentation: base
+      model.integrate: clip, add, mean, concat
       logging.project: architecture-ablation_vol1
   job:
     name: ${random_seed}  # Set the job name to the model name
   sweep:
     dir: augmentation-ablation-vol10/
-    subdir: ${data.dname}/${model.model}/mask-gauss/${random_seed}
+    subdir: ${data.dname}/${model.model}/${model.integrate}/${random_seed}
