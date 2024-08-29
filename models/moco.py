@@ -39,7 +39,8 @@ class MoCo(pl.LightningModule):
     
     def predict(self, x):
         with torch.no_grad():
-            return self(x)
+            z = self.backbone(x)
+            return z
 
     def forward_momentum(self, x):
         key = self.backbone_momentum(x).flatten(start_dim=1)

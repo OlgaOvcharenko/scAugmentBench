@@ -32,7 +32,9 @@ class SimSiam(pl.LightningModule):
     
     def predict(self, x):
         with torch.no_grad():
-            return self(x)[0] # TODO: or [1]??
+            z = self.backbone(x)
+            return z
+            #return self(x)[0] # TODO: or [1]??
 
     def training_step(self, batch, batch_idx):
         x0, x1 = batch[0]
