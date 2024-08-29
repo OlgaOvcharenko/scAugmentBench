@@ -5,8 +5,8 @@ hydra:
       random_seed: range(20, 21)
       model.hidden_dim: 128
       model.training.max_epochs: 1
-      +model: moco, simclr #barlowtwins????
-      +data: pbmc
+      +model: moco, simclr
+      +data: mouse, immune, lung, pbmc, pancreas
       +augmentation: clear_pipeline
       logging.project: architecture-ablation_vol1
   job:

@@ -4,6 +4,7 @@ defaults:
 model: BYOL
 out_dim: 12
 hidden_dim: 128
+hidden_dim_2: 128
 batch_size: 256
 
 training:

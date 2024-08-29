@@ -19,7 +19,6 @@ from data.augmentations import * #get_transforms, augmentations
 from data.graph_augmentation_prep import * # builders for mnn and bbknn augmentation.
 
 import torch
-import torch.backends.cudnn as cudnn
 from torchvision.transforms import Compose
 import numpy as np
 import random
@@ -84,7 +83,6 @@ def reset_random_seeds(seed):
     torch.use_deterministic_algorithms(True)
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)
-    cudnn.deterministic = True
     os.environ["PYTHONHASHSEED"] = str(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
     _LOGGER.info(f"Set random seed to {seed}")    

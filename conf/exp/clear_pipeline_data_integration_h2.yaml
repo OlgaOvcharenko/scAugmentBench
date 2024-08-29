@@ -6,7 +6,7 @@ hydra:
       model.hidden_dim: 128
       model.hidden_dim_2: 64
       model.training.max_epochs: 1
-      +model: moco, simclr, nnclr, simsiam #barlowtwins????
+      +model: nnclr, simsiam #byol, barlowtwins????
       +data: mouse, immune, lung, pbmc, pancreas
       +augmentation: clear_pipeline
       logging.project: architecture-ablation_vol1
