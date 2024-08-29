@@ -12,7 +12,7 @@ from lightly.transforms.moco_transform import MoCoV2Transform
 from lightly.utils.scheduler import cosine_schedule
 
 from utils.train_utils import *
-from models.model_utils import get_backbone
+from models.model_utils import get_backbone, clip_loss
 
 import lightning as pl
 

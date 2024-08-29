@@ -5,7 +5,7 @@ import pandas as pd
 from scib_metrics.benchmark import Benchmarker, BioConservation, BatchCorrection
 import scanpy as sc
 from sklearn.preprocessing import MinMaxScaler
-
+import matplotlib.pyplot as plt
 
 
 _BIO_METRICS = BioConservation(isolated_labels=True, 
@@ -33,7 +33,7 @@ def infer_embedding(model, val_loader):
 
 
 def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
-                   batch_key="batchlb", cell_type_label="CellType",):
+                   batch_key="batchlb", cell_type_label="CellType", umap_plot=""):
     val_loader = torch.utils.data.DataLoader(
                     dataset,
                     batch_size=batch_size,
@@ -41,11 +41,15 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
                     shuffle=False,
                     drop_last=False)
     embedding = infer_embedding(model, val_loader)
-    # print(embedding)
-    # print(np.isnan(embedding).any())
+
     logger.info(f"Inferred embedding of shape {embedding.shape}")
     adata.obsm["Embedding"] = embedding
-    
+
+    sc.pp.neighbors(adata, use_rep="Embedding", metric="cosine")
+    sc.tl.umap(adata, min_dist=0.1)
+    sc.pl.umap(adata, color=["CellType", "batch"], legend_fontweight='light') 
+    plt.savefig(umap_plot)
+
     # FIXME
     # try:
     #     bm = Benchmarker(

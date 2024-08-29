@@ -101,9 +101,6 @@ def load_data_multimodal(config) -> sc.AnnData:
         augmentation_list2 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] != 'RNA'])
 
     _LOGGER.info("Augmentations generated.")
-
-    print(augmentation_list1)
-    print(augmentation_list2)
     
     transforms1 = Compose(augmentation_list1)
     transforms2 = Compose(augmentation_list2)
@@ -191,7 +188,8 @@ def main(cfg: DictConfig):
                         batch_size=cfg["model"]["training"]["batch_size"],
                         num_workers=14,
                         n_epochs=cfg["model"]["training"]["max_epochs"],
-                        logger=_LOGGER)
+                        logger=_LOGGER
+                        )
     run_time = time.time() - start
     _LOGGER.info(f"Training of the model took {round(run_time, 3)} seconds.")
     
@@ -201,6 +199,7 @@ def main(cfg: DictConfig):
                                         batch_size=cfg["model"]["training"]["batch_size"],
                                         num_workers=4,
                                         logger=_LOGGER,
+                                        umap_plot=results_dir.joinpath("plot.png")
                                         )
     #_LOGGER.info(f"Results:\n{results}")
     np.savez_compressed(results_dir.joinpath("embedding.npz"), embedding)

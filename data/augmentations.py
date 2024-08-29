@@ -14,21 +14,21 @@ from torch import bernoulli, rand, normal # rand is the uniform distribution [0,
 def get_augmentation_list(config, X, nns=None, mnn_dict=None):
     # TODO: Implement possibility for reordering of augmentations.
     if nns is None:
-        return [Mask_Augment(**config['mask']), 
-                Gauss_Augment(**config['gauss']),
-                InnerSwap_Augment(**config['innerswap']),
-                CrossOver_Augment(X=X, **config['crossover']),]
+        return [Mask_Augment(**config['mask'], input_shape=(1, X.shape[1])), 
+                Gauss_Augment(**config['gauss'], input_shape=(1, X.shape[1])),
+                InnerSwap_Augment(**config['innerswap'], input_shape=(1, X.shape[1])),
+                CrossOver_Augment(X=X, **config['crossover'], input_shape=(1, X.shape[1]))]
     elif mnn_dict is not None:
         return [Mnn_Augment(X=X, mnn_dict=mnn_dict, nns=nns, **config['mnn']),
-                Mask_Augment(**config['mask']), 
-                Gauss_Augment(**config['gauss']),
-                InnerSwap_Augment(**config['innerswap']),
-                CrossOver_Augment(X=X, **config['crossover']),]
+                Mask_Augment(**config['mask'], input_shape=(1, X.shape[1])), 
+                Gauss_Augment(**config['gauss'], input_shape=(1, X.shape[1])),
+                InnerSwap_Augment(**config['innerswap'], input_shape=(1, X.shape[1])),
+                CrossOver_Augment(X=X, **config['crossover'], input_shape=(1, X.shape[1]))]
     else:
-        return [Mask_Augment(**config['mask']), 
-                Gauss_Augment(**config['gauss']),
-                InnerSwap_Augment(**config['innerswap']),
-                CrossOver_Augment(X=X, **config['crossover']),
+        return [Mask_Augment(**config['mask'], input_shape=(1, X.shape[1])), 
+                Gauss_Augment(**config['gauss'], input_shape=(1, X.shape[1])),
+                InnerSwap_Augment(**config['innerswap'], input_shape=(1, X.shape[1])),
+                CrossOver_Augment(X=X, **config['crossover'], input_shape=(1, X.shape[1])),
                 Bbknn_Augment(X=X, nns=nns, **config['bbknn'])]
 
 def get_transforms(transform_list):

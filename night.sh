@@ -1,9 +1,3 @@
-python main.py --multirun '+experiment=immune_innerswap_augmentation_ablation'
+nohup python main.py --multirun +experiment=multimodal_base_ablation +cluster=slurm &
 
-#python main.py --multirun '+experiment=immune_mask_augmentation_ablation'
-
-#python main.py --multirun '+experiment=immune_gauss_augmentation_ablation'
-
-#python main.py --multirun '+experiment=immune_crossover_augmentation_ablation'
-
-python main.py --multirun '+experiment=immune_bbknn_augmentation_ablation'
+nohup python main.py --multirun +experiment=multimodal_bknn_augmentation_ablation +cluster=slurm &

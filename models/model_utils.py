@@ -18,8 +18,9 @@ def get_backbone(in_dim: int, out_dim: int, dropout:float=0, **kwargs):
     return nn.Sequential(*modules)
 
 def clip_loss(image_embeddings, text_embeddings):
-    image_embeddings = image_embeddings / image_embeddings.norm(dim=1, keepdim=True)
-    text_embeddings = text_embeddings / text_embeddings.norm(dim=1, keepdim=True)
+    # FIXME needed or not
+    # image_embeddings = image_embeddings / image_embeddings.norm(dim=1, keepdim=True)
+    # text_embeddings = text_embeddings / text_embeddings.norm(dim=1, keepdim=True)
 
     logits = (text_embeddings @ image_embeddings.T) / self.temperature
     images_similarity = image_embeddings @ image_embeddings.T
