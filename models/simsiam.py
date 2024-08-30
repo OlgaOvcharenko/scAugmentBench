@@ -62,7 +62,8 @@ class SimSiam(pl.LightningModule):
     def predict(self, x):
         with torch.no_grad():
             if self.multimodal:
-                z1_0, _, z1_1, _ = self(x)
+                z1_0 = self.backbone(x[0])
+                z1_1 = self.backbone2(x[1])
                 if self.integrate == "add":
                     z0 = z1_0 + z1_1
                 elif self.integrate == "mean":
@@ -71,7 +72,7 @@ class SimSiam(pl.LightningModule):
                     z0 = torch.cat((z1_0, z1_1), 1)
                 return z0
             else:
-                return self(x)[0] # TODO: or [1]??
+                return self.backbone(x)
 
     def training_step(self, batch, batch_idx):
         if self.multimodal:

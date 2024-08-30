@@ -2,12 +2,14 @@ mnn:
   alpha: 0.5
   apply_prob: 0
   augment_set: ['int','exc']
+  knn: 3
   nsize: 1
 
 bbknn:
   alpha: 0.5
   apply_prob: 0
-  augment_set: ['int','exc']
+  knn: 3
+  augment_set: ['exc']
   nsize: 1
 
 gauss:
