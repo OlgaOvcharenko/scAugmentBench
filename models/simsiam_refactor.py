@@ -14,12 +14,12 @@ import lightning as pl
 
 class SimSiam(pl.LightningModule):
 
-    def __init__(self, in_dim, hidden_dim, **kwargs):
+    def __init__(self, in_dim, hidden_dim, factor, **kwargs):
         super().__init__()
         assert hidden_dim_2 <= hidden_dim, "hidden dim of prediction head should not be too large!"
         self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
-        hidden_dim_2 = hidden_dim//4
-        out_dim = hidden_dim//2
+        hidden_dim_2 = hidden_dim//(2*factor)
+        out_dim = hidden_dim//factor
         
         self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim, out_dim)
         self.prediction_head = SimSiamPredictionHead(out_dim, hidden_dim_2, out_dim)

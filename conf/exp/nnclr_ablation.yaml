@@ -7,7 +7,7 @@ hydra:
       model.factor: choice(1, 2)
       model.training.max_epochs: 200
       +model: nnclr
-      +data: mouse, immune
+      +data: mouse
       +augmentation: clear_pipeline
       logging.project: architecture-ablation_vol1
   job:
