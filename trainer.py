@@ -9,13 +9,13 @@ import torch
 import lightning as pl
 import hydra
 
-from models.byol import BYOLModule
-from models.barlowtwins import BarlowTwins
-from models.moco import MoCo
-from models.vicreg import VICReg
-from models.simclr import SimCLR
-from models.simsiam import SimSiam
-from models.nnclr import NNCLR
+from models.byol_refactor import BYOL
+from models.barlowtwins_refactor import BarlowTwins
+from models.moco_refactor import MoCo
+from models.vicreg_refactor import VICReg
+from models.simclr_refactor import SimCLR
+from models.simsiam_refactor import SimSiam
+from models.nnclr_refactor import NNCLR
 from models.concerto import Concerto
 #from models.dino import *
 from evaluator import infer_embedding
@@ -26,7 +26,7 @@ from sklearn.metrics import f1_score, accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 import os
 
-_model_dict = {"BYOL": BYOLModule, "BarlowTwins": BarlowTwins, "MoCo": MoCo, "VICReg": VICReg, "SimCLR": SimCLR, "SimSiam": SimSiam, "NNCLR": NNCLR, "Concerto": Concerto}
+_model_dict = {"BYOL": BYOL, "BarlowTwins": BarlowTwins, "MoCo": MoCo, "VICReg": VICReg, "SimCLR": SimCLR, "SimSiam": SimSiam, "NNCLR": NNCLR, "Concerto": Concerto}
 
 
 class CheckpointEveryNSteps(pl.Callback):
@@ -56,12 +56,11 @@ class CheckpointEveryNSteps(pl.Callback):
     def on_train_epoch_end(self, trainer: pl.Trainer, _):
         """ Check if we should save a checkpoint after every train batch """
         epoch = trainer.current_epoch
-        print(epoch)
         if epoch % self.save_step_frequency == 0:
             if self.use_modelcheckpoint_filename:
                 filename = trainer.checkpoint_callback.filename
             else:
-                filename = f"{self.prefix}_{epoch=}_{epoch=}.ckpt"
+                filename = f"{self.prefix}_{epoch=}.ckpt"
             ckpt_path = os.path.join(trainer.checkpoint_callback.dirpath, filename)
             trainer.save_checkpoint(ckpt_path)
 
@@ -84,7 +83,6 @@ def train_model(dataset, model_config, random_seed, batch_size,
     print(model_config)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(ckpt_dir)
     trainer = pl.Trainer(max_epochs=n_epochs, accelerator=device, default_root_dir=ckpt_dir, callbacks=[CheckpointEveryNSteps(save_step_frequency=25)]) # cpu works for smaller tasks!!
     logger.info(f".. Model ready. Now train on {device}.")
     

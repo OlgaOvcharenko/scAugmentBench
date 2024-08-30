@@ -15,7 +15,7 @@ def get_augmentation_list(config, X, nns=None, mnn_dict=None, input_shape=(1,400
     # TODO: Implement possibility for reordering of augmentations.
     print(input_shape)
     if nns is None:
-        return [Mask_Augment(input_shape=input_shape, **config['mask']), 
+        return [Mask_Augment(input_shape=input_shape, **config['mask']), # in original CLEAR pipeline this comes first.
                 Gauss_Augment(input_shape=input_shape, **config['gauss']),
                 InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
                 CrossOver_Augment(X=X, input_shape=input_shape, **config['crossover']),]

@@ -28,15 +28,18 @@ parser.add_argument('--dname_root', default='./', type=str,
                         help='Where to evaluate.')
 parser.add_argument('--dataset', default='immune', type=str,
                         help='Where to evaluate.')
+parser.add_argument('--project_directory', default='immune', type=str,
+                        help='Where to evaluate.')
 
 
 args = parser.parse_args()
 dname_root = args.dname_root
 
 
-with open(f"/local/home/tomap/scAugmentBench/conf/data/{args.dataset}.yaml") as stream:
+
+with open(f"{args.project_directory}/conf/data/{args.dataset}.yaml") as stream:
     cfg_data = yaml.safe_load(stream)
-with open("/local/home/tomap/scAugmentBench/conf/augmentation/base.yaml") as stream:
+with open(f"{args.project_directory}/conf/augmentation/base.yaml") as stream:
     cfg_aug = yaml.safe_load(stream)
 
 cfg = {}

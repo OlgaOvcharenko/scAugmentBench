@@ -31,6 +31,16 @@ def infer_embedding(model, val_loader):
     embedding = np.array(embedding)
     return embedding
 
+def infer_projector_embedding(model, val_loader):
+    outs = []
+    for x in val_loader:
+        with torch.no_grad():
+            outs.append(model(x[0]))
+    
+    embedding = torch.concat(outs)
+    embedding = np.array(embedding)
+    return embedding
+
 
 def evaluate_model(model, adata, dataset, batch_size, num_workers, logger, embedding_save_path,
                    batch_key="batchlb", cell_type_label="CellType",):
