@@ -32,7 +32,8 @@ class NNCLR(pl.LightningModule):
     
     def predict(self, x):
         with torch.no_grad():
-            z, p = self(x)
+            z = self.backbone(x)
+            #z, p = self(x)
         return z # not p!!
 
     def training_step(self, batch, batch_idx):

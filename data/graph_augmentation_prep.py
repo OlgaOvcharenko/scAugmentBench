@@ -33,13 +33,14 @@ class PreProcessingModule():
             scale=False,
             preprocess=True,
             multimodal=False
+            holdout_batch=None
         ):
         self.scale = scale
         self.data_dir = data_dir  # data_root/dataset_name
         self.select_hvg = select_hvg
         self.preprocess = preprocess
         self.multimodal = multimodal
-
+        self.holdout_batch = holdout_batch
         self.load_data()
     
     def load_data(self):
@@ -49,6 +50,14 @@ class PreProcessingModule():
             metadata, X_cnv, cnv_mapping = metadata
         elif type(metadata) == list and len(metadata) == 2 and self.multimodal:
             metadata, modality = metadata
+        
+        if type(self.holdout_batch) == str:
+            fltr = list(metadata[configs.batch_key] != self.holdout_batch)
+            sps_x, cells, metadata = sps_x[:, fltr], cells[fltr], metadata[fltr]
+        elif type(self.holdout_batch) == list:
+            fltr = [metadata[configs.batch_key][i] not in self.holdout_batch for i in range(len(metadata))]
+            sps_x, cells, metadata = sps_x[:, fltr], cells[fltr], metadata[fltr]
+
         adata, X, cell_name, gene_name, metadata = preprocess_dataset(
             sps_x,
             cells,
@@ -116,9 +125,11 @@ class ClaireAugment(PreProcessingModule):
             k_anchor=5,
             filtering=True, 
             preprocess=True,
-            multimodal=False
+            multimodal=False,
+            **kwargs,
         ):
-        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal)
+        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal, **kwargs)
+
         self.k_anchor = k_anchor
         self.knn = knn
         self.exclude_fn = exclude_fn
@@ -325,9 +336,10 @@ class BbknnAugment(PreProcessingModule):
             exclude_fn=False,
             trim_val=None, 
             preprocess=True,
-            multimodal=False
+            multimodal=False,
+            **kwargs,
         ):
-        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal)
+        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal, **kwargs,)
         self.knn = knn
         self.exclude_fn = exclude_fn
         self.trim = trim_val

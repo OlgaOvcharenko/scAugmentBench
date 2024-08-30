@@ -1,0 +1,17 @@
+# @package _global_
+hydra:
+  sweeper:
+    params:
+      random_seed: range(20, 23)
+      model.hidden_dim: 16
+      model.hidden_dim_2: 16
+      model.out_dim: 16
+      +model: barlowtwins, byol, moco, vicreg, simclr, simsiam, nnclr
+      +data: mouse, immune
+      +augmentation: clear_pipeline
+      logging.project: architecture-ablation_vol1
+  job:
+    name: ${random_seed}  # Set the job name to the model name
+  sweep:
+    dir: ablation-db/dimension-ablation-h1/
+    subdir: ${data.dname}/${model.model}/${model.hidden_dim}/${random_seed}

@@ -11,7 +11,7 @@ import wandb
 import scanpy as sc
 import pandas as pd
 
-from trainer import train_model
+from trainer import train_model, train_clf
 from evaluator import evaluate_model
 from data.graph_augmentation_prep import *
 from data.dataset import OurDataset, OurMultimodalDataset
@@ -19,7 +19,6 @@ from data.augmentations import * #get_transforms, augmentations
 from data.graph_augmentation_prep import * # builders for mnn and bbknn augmentation.
 
 import torch
-#import torch.backends.cudnn as cudnn
 from torchvision.transforms import Compose
 import numpy as np
 import random
@@ -41,18 +40,22 @@ def load_data(config) -> sc.AnnData:
     #prepare_bbknn()
     if config['augmentation']['bbknn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with bbknn.")
-        pm = BbknnAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['bbknn']['knn'],
-                     exclude_fn=False, trim_val=None)
-        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns)
+        pm = BbknnAugment(data_path, select_hvg=config["data"]["n_hvgs"], 
+                          scale=False, knn=augmentation_config['bbknn']['knn'],
+                          exclude_fn=False, trim_val=None, holdout_batch=config["data"]["holdout_batch"]
+                          )
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns, input_shape=(1, len(pm.gname)))
     elif config['augmentation']['mnn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with mnn.")
-        pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['mnn']['knn'],
-                     exclude_fn=False, filtering=True)
-        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns, mnn_dict=pm.mnn_dict)
+        pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"],
+                           scale=False, knn=augmentation_config['mnn']['knn'],
+                           exclude_fn=False, filtering=True, holdout_batch=config["data"]["holdout_batch"])
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, nns=pm.nns, mnn_dict=pm.mnn_dict, input_shape=(1, len(pm.gname)))
     else:
         _LOGGER.info("Preprocessing without bbknn.")
-        pm = PreProcessingModule(data_path, select_hvg=config["data"]["n_hvgs"], scale=False)
-        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X)
+        pm = PreProcessingModule(data_path, select_hvg=config["data"]["n_hvgs"], 
+                                 scale=False, holdout_batch=config["data"]["holdout_batch"])
+        augmentation_list = get_augmentation_list(augmentation_config, X=pm.adata.X, input_shape=(1, len(pm.gname)))
         _LOGGER.info("Augmentations generated.")
     
     #_LOGGER.info(f"Augmentation list: {augmentation_list}")
@@ -61,12 +64,11 @@ def load_data(config) -> sc.AnnData:
     train_dataset = OurDataset(adata=pm.adata,
                                transforms=transforms, 
                                valid_ids=None
-                               )
+                            )
     val_dataset = OurDataset(adata=pm.adata,
                              transforms=None,
                              valid_ids=None
-                             )
-    
+                            )
     _LOGGER.info("Finished loading data.....")
     
     return train_dataset, val_dataset, pm.adata
@@ -128,7 +130,6 @@ def reset_random_seeds(seed):
     torch.use_deterministic_algorithms(True)
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)
-    # cudnn.deterministic = True
     os.environ["PYTHONHASHSEED"] = str(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
     _LOGGER.info(f"Set random seed to {seed}")    
@@ -180,33 +181,57 @@ def main(cfg: DictConfig):
 
     _LOGGER.info(f"Start training ({cfg['model']['model']})")
     _LOGGER.info(f"CUDA available: {torch.cuda.is_available()}")
+    
+    cfg['model']['in_dim'] = train_dataset.n_genes
 
     start = time.time()
-    model = train_model(dataset=train_dataset, 
+    model = train_model(dataset=train_dataset,
                         model_config=cfg["model"],
                         random_seed=random_seed, 
                         batch_size=cfg["model"]["training"]["batch_size"],
                         num_workers=14,
                         n_epochs=cfg["model"]["training"]["max_epochs"],
-                        logger=_LOGGER
-                        )
+                        ckpt_dir=results_dir,
+                        logger=_LOGGER)
     run_time = time.time() - start
     _LOGGER.info(f"Training of the model took {round(run_time, 3)} seconds.")
     
-    results, embedding = evaluate_model(model=model,
-                                        dataset=val_dataset,
-                                        adata=ad,
-                                        batch_size=cfg["model"]["training"]["batch_size"],
-                                        num_workers=4,
-                                        logger=_LOGGER,
-                                        umap_plot=results_dir.joinpath("plot.png")
+    if cfg["debug"] is True:
+        pass
+    elif cfg["data"]["holdout_batch"] is None:
+        _LOGGER.info("Running SCIB-Benchmark Evaluation.")
+        results, embedding = evaluate_model(model=model,
+                                            dataset=val_dataset,
+                                            adata=ad,
+                                            batch_size=cfg["model"]["training"]["batch_size"],
+                                            num_workers=8,
+                                            logger=_LOGGER,
+                                            embedding_save_path=results_dir.joinpath("embedding.npz"),
+                                            umap_plot=results_dir.joinpath("plot.png")
                                         )
-    #_LOGGER.info(f"Results:\n{results}")
-    np.savez_compressed(results_dir.joinpath("embedding.npz"), embedding)
-    try:
-        results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)
-    except:
-        _LOGGER.info("Something went wrong with the benchmark.")
+        try:
+            results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)
+        except:
+            _LOGGER.info("Something went wrong with the benchmark.")
+    
+    elif cfg["data"]["holdout_batch"] is not None:
+        _LOGGER.info("Running QR-Mapper-Inference.")
+        _LOGGER.info(f"Results of QR-Mapper will be saved in {results_dir}")
+        # load total adata, and get holdout-subset as Val_X and Y for clf-training
+        pm = PreProcessingModule(cfg["data"]["data_path"], select_hvg=cfg["data"]["n_hvgs"], 
+                                 scale=False, holdout_batch=None)
+        if type(cfg["data"]["holdout_batch"]) == str:
+            fltr = pm.adata.obs['batchlb']==cfg["data"]["holdout_batch"]
+        else:
+            fltr = [pm.adata.obs['batchlb'][i] in cfg["data"]["holdout_batch"] for i in range(len(pm.adata))]
+        
+        train_adata = ad
+        val_adata = pm.adata[fltr]
+        clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType')
+        
+        print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
+        _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
+
 
 if __name__ == "__main__":
     main()

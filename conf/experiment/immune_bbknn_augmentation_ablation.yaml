@@ -2,9 +2,9 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 25)
+      random_seed: range(20, 23)
       augmentation.bbknn.apply_prob: 0.5
-      augmentation.bbknn.alpha: 0.8
+      augmentation.bbknn.alpha: choice(0.9)
       +model: moco, simsiam, simclr
       +data: immune
       +augmentation: base

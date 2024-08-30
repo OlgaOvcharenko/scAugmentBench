@@ -26,13 +26,13 @@ def infer_embedding(model, val_loader):
     for x in val_loader:
         with torch.no_grad():
             outs.append(model.predict(x[0]))
-
+    
     embedding = torch.concat(outs)
     embedding = np.array(embedding)
     return embedding
 
 
-def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
+def evaluate_model(model, adata, dataset, batch_size, num_workers, logger, embedding_save_path,
                    batch_key="batchlb", cell_type_label="CellType", umap_plot=""):
     val_loader = torch.utils.data.DataLoader(
                     dataset,
@@ -41,6 +41,7 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
                     shuffle=False,
                     drop_last=False)
     embedding = infer_embedding(model, val_loader)
+    np.savez_compressed(embedding_save_path, embedding)
 
     logger.info(f"Inferred embedding of shape {embedding.shape}")
     adata.obsm["Embedding"] = embedding
@@ -49,26 +50,24 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers, logger,
     sc.tl.umap(adata, min_dist=0.1)
     sc.pl.umap(adata, color=["CellType", "batch"], legend_fontweight='light') 
     plt.savefig(umap_plot)
+    try:
+        bm = Benchmarker(
+                    adata,
+                    batch_key=batch_key,
+                    label_key=cell_type_label,
+                    embedding_obsm_keys=["Embedding"],
+                    bio_conservation_metrics=_BIO_METRICS,
+                    batch_correction_metrics=_BATCH_METRICS,
+                    n_jobs=num_workers,
+                )
+        bm.benchmark()
+        a = bm.get_results(False, True)
+        results = a[:1].astype(float).round(4)
+    except Exception as error:
+        results = None
+        logger.info(".. An exception occured while evaluating:", error)
 
-    # FIXME
-    # try:
-    #     bm = Benchmarker(
-    #                 adata,
-    #                 batch_key=batch_key,
-    #                 label_key=cell_type_label,
-    #                 embedding_obsm_keys=["Embedding"],
-    #                 bio_conservation_metrics=_BIO_METRICS,
-    #                 batch_correction_metrics=_BATCH_METRICS,
-    #                 n_jobs=num_workers,
-    #             )
-    #     bm.benchmark()
-    #     a = bm.get_results(False, True)
-    #     results = a[:1]
-    # except Exception as error:
-    #     results = 0.0
-    #     logger.info(".. An exception occured while evaluating:", error)
-
-    return 0.0, embedding
+    return results, embedding
 
 def recalculate_results(adata, embedding, num_workers,
                    batch_key="batchlb", cell_type_label="CellType",):

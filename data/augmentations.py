@@ -11,40 +11,40 @@ import torch.nn as nn
 from torch import bernoulli, rand, normal # rand is the uniform distribution [0, 1) 
 
 
-def get_augmentation_list(config, X, nns=None, mnn_dict=None):
+def get_augmentation_list(config, X, nns=None, mnn_dict=None, input_shape=None):
     # TODO: Implement possibility for reordering of augmentations.
+    print(input_shape)
+    if input_shape is None:
+        input_shape = (1, X.shape[1])
     if nns is None:
-        return [Mask_Augment(**config['mask'], input_shape=(1, X.shape[1])), 
-                Gauss_Augment(**config['gauss'], input_shape=(1, X.shape[1])),
-                InnerSwap_Augment(**config['innerswap'], input_shape=(1, X.shape[1])),
-                CrossOver_Augment(X=X, **config['crossover'], input_shape=(1, X.shape[1]))]
+        return [Mask_Augment(input_shape=input_shape, **config['mask']), 
+                Gauss_Augment(input_shape=input_shape, **config['gauss']),
+                InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
+                CrossOver_Augment(X=X, input_shape=input_shape, **config['crossover']),]
     elif mnn_dict is not None:
         return [Mnn_Augment(X=X, mnn_dict=mnn_dict, nns=nns, **config['mnn']),
-                Mask_Augment(**config['mask'], input_shape=(1, X.shape[1])), 
-                Gauss_Augment(**config['gauss'], input_shape=(1, X.shape[1])),
-                InnerSwap_Augment(**config['innerswap'], input_shape=(1, X.shape[1])),
-                CrossOver_Augment(X=X, **config['crossover'], input_shape=(1, X.shape[1]))]
+                Gauss_Augment(input_shape=input_shape, **config['gauss']),
+                InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
+                Mask_Augment(input_shape=input_shape, **config['mask']),]
     else:
-        return [Mask_Augment(**config['mask'], input_shape=(1, X.shape[1])), 
-                Gauss_Augment(**config['gauss'], input_shape=(1, X.shape[1])),
-                InnerSwap_Augment(**config['innerswap'], input_shape=(1, X.shape[1])),
-                CrossOver_Augment(X=X, **config['crossover'], input_shape=(1, X.shape[1])),
-                Bbknn_Augment(X=X, nns=nns, **config['bbknn'])]
+        return [Gauss_Augment(input_shape=input_shape, **config['gauss']),
+                InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
+                CrossOver_Augment(X=X, input_shape=input_shape, **config['crossover']),
+                Bbknn_Augment(X=X, nns=nns, **config['bbknn']),
+                Mask_Augment(input_shape=input_shape,**config['mask']),]
 
 def get_transforms(transform_list):
     return Compose(transform_list)
 
 # x_bar = x*lambda + x_p*(1-lambda)
 def interpolation(x, x_p, alpha):
-    lamda = (alpha - 1.0) * rand(1) + 1
-    #lamda = np.random.uniform(alpha, 1.)  # [alpha, 1.]
-    x = lamda * x + (1 - lamda) * x_p
+    #lamda = (alpha - 1.0) * rand(1) + 1
+    x = alpha * x + (1 - alpha) * x_p
     return x
 
 # x_bar = x^lambda + x_p^(1-lambda)
 def geo_interpolation(x, x_p, alpha):
     lamda = (alpha - 1.0) * rand(1) + 1
-    #lamda = np.random.uniform(alpha, 1.)  # [alpha, 1.]
     x = (x**lamda) * (x_p**(1-lamda))
     return x
 
@@ -120,7 +120,7 @@ class Mnn_Augment(nn.Module):
 
 class Gauss_Augment(nn.Module):
     
-    def __init__(self, noise_percentage: float=0.2, sigma: float=0.5, apply_prob: float=0.3,input_shape=(1, 2000)):
+    def __init__(self, noise_percentage: float=0.2, sigma: float=0.5, apply_prob: float=0.3, input_shape=(1, 4000)):
         super().__init__()
         self.apply_thresh = apply_prob
         self.noise_percentage = noise_percentage
