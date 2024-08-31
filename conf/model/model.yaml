@@ -2,6 +2,7 @@ in_dim: 2000
 in_dim2: 224
 dropout: 0.0
 hidden_dim_2: 12
+out_dim: 12
 
 multimodal: True
 integrate: add

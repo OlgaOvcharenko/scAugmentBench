@@ -17,7 +17,7 @@ def get_augmentation_list(config, X, nns=None, mnn_dict=None, input_shape=None):
     if input_shape is None:
         input_shape = (1, X.shape[1])
     if nns is None:
-        return [Mask_Augment(input_shape=input_shape, **config['mask']), 
+        return [Mask_Augment(input_shape=input_shape, **config['mask']), # in original CLEAR pipeline this comes first.
                 Gauss_Augment(input_shape=input_shape, **config['gauss']),
                 InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
                 CrossOver_Augment(X=X, input_shape=input_shape, **config['crossover']),]
