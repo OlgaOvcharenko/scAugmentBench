@@ -111,7 +111,8 @@ class SimSiam(pl.LightningModule):
                 p1 = torch.cat((p2_0, p2_1), 1)
             elif self.integrate == "clip":
                 # FIXME does it make sense?
-                loss = 0.25 * (clip_loss(z1_0, p2_1) + clip_loss(z2_1, p1_0) + clip_loss(z1_1, p2_0) + clip_loss(z2_0, p1_1))
+                # loss = 0.25 * (clip_loss(z1_0, p2_1) + clip_loss(z2_1, p1_0) + clip_loss(z1_1, p2_0) + clip_loss(z2_0, p1_1))
+                loss = 0.25 * (clip_loss(z1_0, z1_1) + clip_loss(p1_0, p1_1) + clip_loss(z2_0, z2_1) + clip_loss(p2_0, p2_1))
                 return loss
 
             else:

@@ -14,40 +14,133 @@ import lightning as pl
 
 class NNCLR(pl.LightningModule):
 
-    def __init__(self, in_dim, hidden_dim, factor, memory_bank_size=4096, **kwargs):
+    def __init__(self, in_dim, hidden_dim, multimodal, factor, memory_bank_size=4096, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
-        self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
-        
+
+        self.multimodal = multimodal
+        self.predict_projection = predict_projection
+
         hidden_dim_2 = hidden_dim
         out_dim = hidden_dim//factor
 
-        self.projection_head = NNCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
-        self.prediction_head = NNCLRPredictionHead(out_dim, hidden_dim_2, out_dim)
-        self.memory_bank = NNMemoryBankModule(size=(memory_bank_size, out_dim))
+        if self.multimodal:
+            self.integrate = integrate
+            self.predict_only_rna = only_rna
 
-        self.criterion = NTXentLoss()
+            self.temperature = 1.0
+
+            self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
+
+            self.projection_head = NNCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
+            self.prediction_head = NNCLRPredictionHead(out_dim, hidden_dim_2, out_dim)
+            self.memory_bank = NNMemoryBankModule(size=(memory_bank_size, out_dim))
+
+            self.backbone2 = get_backbone_deep(in_dim2, hidden_dim, **kwargs)
+
+            self.projection_head2 = NNCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
+            self.prediction_head2 = NNCLRPredictionHead(out_dim, hidden_dim_2, out_dim)
+            self.memory_bank2 = NNMemoryBankModule(size=(memory_bank_size, out_dim))
+
+            self.criterion = NTXentLoss()
+        
+        else:
+            self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
+
+            self.projection_head = NNCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
+            self.prediction_head = NNCLRPredictionHead(out_dim, hidden_dim_2, out_dim)
+            self.memory_bank = NNMemoryBankModule(size=(memory_bank_size, out_dim))
+
+            self.criterion = NTXentLoss()
 
     def forward(self, x):
-        y = self.backbone(x).flatten(start_dim=1)
-        z = self.projection_head(y)
-        p = self.prediction_head(z)
-        z = z.detach()
-        return z, p
+        if self.multimodal:
+            y = self.backbone(x[0]).flatten(start_dim=1)
+            z = self.projection_head(y)
+            p = self.prediction_head(z)
+            z = z.detach()
+
+            y2 = self.backbone2(x[1]).flatten(start_dim=1)
+            z2 = self.projection_head2(y2)
+            p2 = self.prediction_head2(z2)
+            z2 = z2.detach()
+            return z, p, z2, p2
+        else:
+            y = self.backbone(x).flatten(start_dim=1)
+            z = self.projection_head(y)
+            p = self.prediction_head(z)
+            z = z.detach()
+            return z, p
     
     def predict(self, x):
         with torch.no_grad():
-            z = self.backbone(x)
-            #z, p = self(x)
-        return z # not p!!
+            if self.multimodal:
+                if self.predict_projection:
+                    z1_0, _, z1_1, _ = self(x)
+                else:
+                    z1_0, z1_1 = self.backbone(x[0]), self.backbone2(x[1])
+                
+                if self.predict_only_rna:
+                    return z1_0
+
+                if self.integrate == "add":
+                    z0 = z1_0 + z1_1
+                elif self.integrate == "mean":
+                    z0 = (z1_0 + z1_1) / 2
+                else:
+                    z0 = torch.cat((z1_0, z1_1), 1)
+                return z0
+            else:
+                return self(x)[0] if self.predict_projection else self.backbone(x)
 
     def training_step(self, batch, batch_idx):
-        x0, x1 = batch[0]
-        z0, p0 = self.forward(x0)
-        z1, p1 = self.forward(x1)
-        z0 = self.memory_bank(z0, update=False)
-        z1 = self.memory_bank(z1, update=True)
-        # TODO: symmetrize the loss?
-        loss = 0.5 * (self.criterion(z0, p1) + self.criterion(z1, p0))
+        if self.multimodal:
+            x1_1, x2_1, x1_2, x2_2 = batch[0]
+            x0 = [x1_1, x1_2]
+            x1 = [x2_1, x2_2]
+            
+            z1_0, p1_0, z1_1, p1_1 = self.forward(x0) # RNA, Protein
+            z2_0, p2_0, z2_1, p2_1 = self.forward(x1)
+
+            z1_0 = self.memory_bank(z1_0, update=False)
+            z1_1 = self.memory_bank(z1_1, update=True)
+            z2_0 = self.memory_bank(z2_0, update=False)
+            z2_1 = self.memory_bank(z2_1, update=False)
+
+            if self.integrate == "add":
+                z0 = z1_0 + z1_1
+                p0 = p1_0 + p1_1
+                z1 = z2_0 + z2_1
+                p1 = p2_0 + p2_1
+            elif self.integrate == "mean":
+                z0 = (z1_0 + z1_1) / 2
+                p0 = (p1_0 + p1_1) / 2
+                z1 = (z2_0 + z2_1) / 2
+                p1 = (p2_0 + p2_1) / 2
+            elif self.integrate == "concat":
+                z0 = torch.cat((z1_0, z1_1), 1)
+                z1 = torch.cat((z2_0, z2_1), 1)
+                p0 = torch.cat((p1_0, p1_1), 1)
+                p1 = torch.cat((p2_0, p2_1), 1)
+            elif self.integrate == "clip":
+                # FIXME does it make sense?
+                # loss = 0.25 * (clip_loss(z1_0, p2_1) + clip_loss(z2_1, p1_0) + clip_loss(z1_1, p2_0) + clip_loss(z2_0, p1_1))
+                loss = 0.25 * (clip_loss(z1_0, z1_1) + clip_loss(p1_0, p1_1) + clip_loss(z2_0, z2_1) + clip_loss(p2_0, p2_1))
+                return loss
+
+            else:
+                raise Exception("Invalid integration method.")
+            
+            loss = 0.5 * (self.criterion(z0, p1) + self.criterion(z1, p0))
+
+        else:
+            x0, x1 = batch[0]
+            z0, p0 = self.forward(x0)
+            z1, p1 = self.forward(x1)
+            z0 = self.memory_bank(z0, update=False)
+            z1 = self.memory_bank(z1, update=True)
+            # TODO: symmetrize the loss?
+            loss = 0.5 * (self.criterion(z0, p1) + self.criterion(z1, p0))
+        
         return loss
 
     def configure_optimizers(self):
