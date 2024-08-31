@@ -12,7 +12,7 @@ from lightly.transforms.moco_transform import MoCoV2Transform
 from lightly.utils.scheduler import cosine_schedule
 
 from utils.train_utils import *
-from models.model_utils import get_backbone, clip_loss
+from models.model_utils import get_backbone, get_backbone_deep, clip_loss
 
 import lightning as pl
 
@@ -30,7 +30,7 @@ class MoCo(pl.LightningModule):
             self.predict_only_rna = only_rna
             self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
-            self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
+            self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = MoCoProjectionHead(hidden_dim, hidden_dim, out_dim)
 
             self.backbone_momentum = copy.deepcopy(self.backbone)
@@ -39,7 +39,7 @@ class MoCo(pl.LightningModule):
             deactivate_requires_grad(self.backbone_momentum)
             deactivate_requires_grad(self.projection_head_momentum)
 
-            self.backbone2 = get_backbone(in_dim2, hidden_dim, **kwargs)
+            self.backbone2 = get_backbone_deep(in_dim2, hidden_dim, **kwargs)
             self.projection_head2 = MoCoProjectionHead(hidden_dim, hidden_dim, out_dim)
 
             self.backbone_momentum2 = copy.deepcopy(self.backbone2)
@@ -51,7 +51,7 @@ class MoCo(pl.LightningModule):
             self.criterion = NTXentLoss(memory_bank_size=(memory_bank_size, out_dim))
         
         else:
-            self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
+            self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = MoCoProjectionHead(hidden_dim, hidden_dim, out_dim)
 
             self.backbone_momentum = copy.deepcopy(self.backbone)

@@ -6,7 +6,7 @@ from lightly.loss.ntx_ent_loss import NTXentLoss
 from lightly.models.modules.heads import SimCLRProjectionHead
 
 from utils.train_utils import *
-from models.model_utils import get_backbone, clip_loss
+from models.model_utils import get_backbone, get_backbone_deep, clip_loss
 
 import lightning as pl
 
@@ -24,15 +24,15 @@ class SimCLR(pl.LightningModule):
             self.predict_only_rna = predict_only_rna
             self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
-            self.backbone1 = get_backbone(in_dim, hidden_dim, **kwargs)
+            self.backbone1 = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head1 = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
 
-            self.backbone2 = get_backbone(in_dim2, hidden_dim, **kwargs)
+            self.backbone2 = get_backbone_deep(in_dim2, hidden_dim, **kwargs)
             self.projection_head2 = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
 
             self.criterion = NTXentLoss()
         else:
-            self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
+            self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
             self.criterion = NTXentLoss()
 
