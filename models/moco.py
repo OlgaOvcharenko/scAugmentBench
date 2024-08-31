@@ -18,14 +18,16 @@ import lightning as pl
 
 
 class MoCo(pl.LightningModule):
-    def __init__(self, in_dim, hidden_dim, multimodal, out_dim, memory_bank_size, max_epochs=200, in_dim2=0, integrate=None, **kwargs):
+    def __init__(self, in_dim, hidden_dim, multimodal, out_dim, memory_bank_size, max_epochs=200, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
 
         self.multimodal = multimodal
         self.max_epochs = max_epochs
-
+        self.predict_projection = predict_projection
+        
         if self.multimodal:
             self.integrate = integrate
+            self.predict_only_rna = only_rna
             self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
             self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
@@ -76,7 +78,11 @@ class MoCo(pl.LightningModule):
     def predict(self, x):
         with torch.no_grad():
             if self.multimodal:
-                z1_0, z1_1 = self.backbone(x[0]), self.backbone2(x[1])
+                z1_0, z1_1 = self(x) if self.predict_projection else self.backbone(x[0]), self.backbone2(x[1]) 
+
+                if self.predict_only_rna:
+                    return z1_0
+
                 if self.integrate == "add":
                     z0 = z1_0 + z1_1
                 elif self.integrate == "mean":
@@ -85,7 +91,7 @@ class MoCo(pl.LightningModule):
                     z0 = torch.cat((z1_0, z1_1), 1)
                 return z0
             else:
-                return self.backbone(x)
+                return self(x) if self.predict_projection else self.backbone(x)
 
     def forward_momentum(self, x):
         if self.multimodal:
