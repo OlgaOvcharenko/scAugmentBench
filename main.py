@@ -176,13 +176,14 @@ def main(cfg: DictConfig):
 
     if "_multimodal" in cfg["data"]["data_path"]:
         train_dataset, val_dataset, ad = load_data_multimodal(cfg)
+        cfg['model']['in_dim'] = train_dataset.n_genes[0]
+        cfg['model']['in_dim2'] = train_dataset.n_genes[1]
     else:
         train_dataset, val_dataset, ad = load_data(cfg)
+        cfg['model']['in_dim'] = train_dataset.n_genes
 
     _LOGGER.info(f"Start training ({cfg['model']['model']})")
     _LOGGER.info(f"CUDA available: {torch.cuda.is_available()}")
-    
-    cfg['model']['in_dim'] = train_dataset.n_genes
 
     start = time.time()
     model = train_model(dataset=train_dataset,

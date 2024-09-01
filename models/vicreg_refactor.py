@@ -19,6 +19,7 @@ class VICReg(pl.LightningModule):
         self.predict_projection = predict_projection
         
         if self.multimodal:
+            print(kwargs)
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             reg_alpha = reg_lambda # See table 7 https://arxiv.org/pdf/2105.04906
             reg_beta = 1.0 # See table 7 https://arxiv.org/pdf/2105.04906

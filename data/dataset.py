@@ -58,6 +58,7 @@ class OurMultimodalDataset(Dataset):
         else:
             self.valid_cellidx = valid_ids
         self.n_samples = len(self.valid_cellidx)
+        self.n_genes = (self.X1.shape[1], self.X2.shape[1]) 
 
     """
     TODO: How to handle when we remove cells during filtering?
