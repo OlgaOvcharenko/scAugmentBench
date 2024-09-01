@@ -1,4 +1,3 @@
-
 import copy
 
 import torch
@@ -13,6 +12,7 @@ from lightly.loss.sym_neg_cos_sim_loss import SymNegCosineSimilarityLoss
 
 from models.model_utils import *
 from utils.train_utils import *
+import numpy as np
 
 
 class BYOL(pl.LightningModule):
@@ -29,7 +29,7 @@ class BYOL(pl.LightningModule):
             self.integrate = integrate
             self.predict_only_rna = only_rna
 
-            self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+            self.temperature = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = BYOLProjectionHead(hidden_dim, hidden_dim_2, out_dim)
@@ -50,7 +50,12 @@ class BYOL(pl.LightningModule):
 
             deactivate_requires_grad(self.backbone_momentum2)
             deactivate_requires_grad(self.projection_head_momentum2)
-            self.criterion = SymNegCosineSimilarityLoss()
+
+            if self.integrate == 'clip':
+                self.loss_img = nn.CrossEntropyLoss()
+                self.loss_txt = nn.CrossEntropyLoss()
+            else:
+                self.criterion = SymNegCosineSimilarityLoss()
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = BYOLProjectionHead(hidden_dim, hidden_dim_2, out_dim)
@@ -69,9 +74,9 @@ class BYOL(pl.LightningModule):
             z = self.projection_head(y)
             p = self.prediction_head(z)
 
-            y2 = self.backbone(x[1]).flatten(start_dim=1)
-            z2 = self.projection_head(y2)
-            p2 = self.prediction_head(z2)
+            y2 = self.backbone2(x[1]).flatten(start_dim=1)
+            z2 = self.projection_head2(y2)
+            p2 = self.prediction_head2(z2)
             return p, p2
 
         else:
@@ -124,7 +129,8 @@ class BYOL(pl.LightningModule):
                 z1 = torch.cat((z2_1, z2_2), 1)
             elif self.integrate == "clip":
                 # FIXME does it make sense?
-                loss = 0.5 * (clip_loss(p0, p1) + clip_loss(z0, z1))
+                logit_scale = self.temperature.exp()
+                loss = clip_loss(p1_1, p1_2, logit_scale, self.loss_img, self.loss_txt) + clip_loss(z1_1, z1_2, logit_scale, self.loss_img, self.loss_txt) + clip_loss(p2_1, p2_2, logit_scale, self.loss_img, self.loss_txt) + clip_loss(z2_1, z2_2, logit_scale, self.loss_img, self.loss_txt)
                 return loss
             else:
                 raise Exception("Invalid integration method.")
@@ -146,8 +152,21 @@ class BYOL(pl.LightningModule):
     
     def predict(self, x):
         with torch.no_grad():
-            z = self.backbone(x)
-            return z
+            if self.multimodal:
+                z1_0, z1_1 = self(x) if self.predict_projection else self.backbone(x[0]), self.backbone2(x[1]) 
+
+                if self.predict_only_rna:
+                    return z1_0
+
+                if self.integrate == "add":
+                    z0 = z1_0 + z1_1
+                elif self.integrate == "mean":
+                    z0 = (z1_0 + z1_1) / 2
+                else:
+                    z0 = torch.cat((z1_0, z1_1), 1)
+                return z0
+            else:
+                return self(x) if self.predict_projection else self.backbone(x)
     
     def configure_optimizers(self):
         return optimizer_builder(self)

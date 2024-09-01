@@ -10,7 +10,7 @@ from utils.train_utils import *
 from models.model_utils import *
 
 import lightning as pl
-
+import numpy as np
 
 class NNCLR(pl.LightningModule):
 
@@ -27,7 +27,7 @@ class NNCLR(pl.LightningModule):
             self.integrate = integrate
             self.predict_only_rna = only_rna
 
-            self.temperature = 1.0
+            self.temperature = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
 
@@ -41,7 +41,11 @@ class NNCLR(pl.LightningModule):
             self.prediction_head2 = NNCLRPredictionHead(out_dim, hidden_dim_2, out_dim)
             self.memory_bank2 = NNMemoryBankModule(size=(memory_bank_size, out_dim))
 
-            self.criterion = NTXentLoss()
+            if self.integrate == 'clip':
+                self.loss_img = nn.CrossEntropyLoss()
+                self.loss_txt = nn.CrossEntropyLoss()
+            else:
+                self.criterion = NTXentLoss()
         
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
@@ -123,8 +127,8 @@ class NNCLR(pl.LightningModule):
                 p1 = torch.cat((p2_0, p2_1), 1)
             elif self.integrate == "clip":
                 # FIXME does it make sense?
-                # loss = 0.25 * (clip_loss(z1_0, p2_1) + clip_loss(z2_1, p1_0) + clip_loss(z1_1, p2_0) + clip_loss(z2_0, p1_1))
-                loss = 0.25 * (clip_loss(z1_0, z1_1) + clip_loss(p1_0, p1_1) + clip_loss(z2_0, z2_1) + clip_loss(p2_0, p2_1))
+                logit_scale = self.temperature.exp()
+                loss = clip_loss(z1_0, z1_1, logit_scale, self.loss_img, self.loss_txt) + clip_loss(p1_0, p1_1, logit_scale, self.loss_img, self.loss_txt) + clip_loss(z2_0, z2_1, logit_scale, self.loss_img, self.loss_txt) + clip_loss(p2_0, p2_1, logit_scale, self.loss_img, self.loss_txt)
                 return loss
 
             else:

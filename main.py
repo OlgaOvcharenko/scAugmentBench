@@ -205,7 +205,7 @@ def main(cfg: DictConfig):
                                             dataset=val_dataset,
                                             adata=ad,
                                             batch_size=cfg["model"]["training"]["batch_size"],
-                                            num_workers=8,
+                                            num_workers=4,
                                             logger=_LOGGER,
                                             embedding_save_path=results_dir.joinpath("embedding.npz"),
                                             umap_plot=results_dir.joinpath("plot.png")

@@ -36,21 +36,20 @@ def get_backbone_deep(in_dim: int, encoder_out_dim: int, dropout:float=0, **kwar
     ]
     return nn.Sequential(*modules)
 
-def clip_loss(image_embeddings, text_embeddings):
-    # FIXME needed or not
-    # image_embeddings = image_embeddings / image_embeddings.norm(dim=1, keepdim=True)
-    # text_embeddings = text_embeddings / text_embeddings.norm(dim=1, keepdim=True)
+def clip_loss(image_features, text_features, logit_scale, loss_img, loss_txt):
+    # normalized features
+    image_features = image_features / image_features.norm(dim=1, keepdim=True)
+    text_features = text_features / text_features.norm(dim=1, keepdim=True)
 
-    logits = (text_embeddings @ image_embeddings.T) / self.temperature
-    images_similarity = image_embeddings @ image_embeddings.T
-    texts_similarity = text_embeddings @ text_embeddings.T
-    targets = F.softmax(
-        (images_similarity + texts_similarity) / 2 * self.temperature, dim=-1
-    )
-    texts_loss = cross_entropy(logits, targets, reduction='none')
-    images_loss = cross_entropy(logits.T, targets.T, reduction='none')
-    loss =  (images_loss + texts_loss) / 2.0
-    return loss.mean()
+    # cosine similarity as logits
+    logits_per_image = logit_scale * image_features @ text_features.t()
+    logits_per_text = logits_per_image.t()
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    ground_truth = torch.arange(len(image_features), dtype=torch.long, device=device)
+    total_loss = (loss_img(logits_per_image, ground_truth) + loss_txt(logits_per_text, ground_truth))/2
+
+    return total_loss
 
 def cross_entropy(preds, targets):
     log_softmax = nn.LogSoftmax(dim=-1)

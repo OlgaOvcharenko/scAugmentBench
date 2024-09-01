@@ -3,12 +3,12 @@ hydra:
   sweeper:
     params:
       random_seed: range(20, 21)
-      +model: vicreg
+      +model: simclr, moco, simsiam, vicreg, nnclr, byol, barlowtwins, concerto
       +data: pbmc_multimodal
       +augmentation: clear_pipeline
-      model.integrate: add
-      model.predict_only_rna: False
-      model.predict_projection: False 
+      model.integrate: add, concat, mean, clip
+      model.predict_only_rna: False, True
+      model.predict_projection: False, True 
       logging.project: architecture-ablation_vol1
   job:
     name: ${random_seed}  # Set the job name to the model name

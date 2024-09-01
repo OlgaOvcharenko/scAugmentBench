@@ -22,7 +22,7 @@ class SimCLR(pl.LightningModule):
         if self.multimodal:
             self.integrate = integrate
             self.predict_only_rna = predict_only_rna
-            self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+            self.temperature = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
             self.backbone1 = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head1 = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
@@ -30,7 +30,12 @@ class SimCLR(pl.LightningModule):
             self.backbone2 = get_backbone_deep(in_dim2, hidden_dim, **kwargs)
             self.projection_head2 = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
 
-            self.criterion = NTXentLoss()
+            if self.integrate == 'clip':
+                self.loss_img = nn.CrossEntropyLoss()
+                self.loss_txt = nn.CrossEntropyLoss()
+            else:
+                self.criterion = NTXentLoss()
+
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
@@ -87,7 +92,10 @@ class SimCLR(pl.LightningModule):
                 z0 = torch.cat((z1_0, z1_1), 1)
                 z1 = torch.cat((z2_0, z2_1), 1)
             elif self.integrate == "clip":
-                loss = 0.5 * (clip_loss(z1_0, z1_1) + clip_loss(z2_0, z2_1))
+                logit_scale = self.temperature.exp()
+                
+                # FIXME 0.5 * ()
+                loss = clip_loss(z1_0, z1_1, logit_scale, self.loss_img, self.loss_txt) + clip_loss(z2_0, z2_1, logit_scale, self.loss_img, self.loss_txt)
                 return loss
 
             else:

@@ -10,6 +10,7 @@ from utils.train_utils import optimizer_builder
 from models.model_utils import *
 
 import lightning as pl
+import numpy as np
 
 
 class BarlowTwins(pl.LightningModule):
@@ -24,14 +25,19 @@ class BarlowTwins(pl.LightningModule):
         if self.multimodal:
             self.integrate = integrate
             self.predict_only_rna = predict_only_rna
-            self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+            self.temperature = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = BarlowTwinsProjectionHead(hidden_dim, out_dim, out_dim)
 
             self.backbone2 = get_backbone_deep(in_dim2, hidden_dim, **kwargs)
             self.projection_head2 = BarlowTwinsProjectionHead(hidden_dim, out_dim, out_dim)
-            self.criterion = BarlowTwinsLoss()
+
+            if self.integrate == 'clip':
+                self.loss_img = nn.CrossEntropyLoss()
+                self.loss_txt = nn.CrossEntropyLoss()
+            else:
+                self.criterion = BarlowTwinsLoss()
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = BarlowTwinsProjectionHead(hidden_dim, out_dim, out_dim)
@@ -88,7 +94,10 @@ class BarlowTwins(pl.LightningModule):
                 z0 = torch.cat((z1_0, z1_1), 1)
                 z1 = torch.cat((z2_0, z2_1), 1)
             elif self.integrate == "clip":
-                loss = 0.5 * (clip_loss(z1_0, z1_1) + clip_loss(z2_0, z2_1))
+                logit_scale = self.temperature.exp()
+                
+                # FIXME 0.5 * ()
+                loss = clip_loss(z1_0, z1_1, logit_scale, self.loss_img, self.loss_txt) + clip_loss(z2_0, z2_1, logit_scale, self.loss_img, self.loss_txt)
                 return loss
 
             else:

@@ -9,7 +9,7 @@ from utils.train_utils import *
 from models.model_utils import *
 
 import lightning as pl
-
+import numpy as np
 
 class VICReg(pl.LightningModule):
     
@@ -21,9 +21,12 @@ class VICReg(pl.LightningModule):
         reg_alpha = reg_lambda # See table 7 https://arxiv.org/pdf/2105.04906
         reg_beta = 1.0 # See table 7 https://arxiv.org/pdf/2105.04906
         out_dim = factor*hidden_dim
-        print(out_dim)
         
         if self.multimodal:
+            self.integrate = integrate
+            self.predict_only_rna = predict_only_rna
+            self.temperature = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+            
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = VICRegProjectionHead(
                 input_dim=hidden_dim,
@@ -39,7 +42,12 @@ class VICReg(pl.LightningModule):
                 output_dim=out_dim,
                 num_layers=2,
             )
-            self.criterion = VICRegLoss(reg_lambda, reg_alpha, reg_beta)
+
+            if self.integrate == 'clip':
+                self.loss_img = nn.CrossEntropyLoss()
+                self.loss_txt = nn.CrossEntropyLoss()
+            else:
+                self.criterion = VICRegLoss(reg_lambda, reg_alpha, reg_beta)
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = VICRegProjectionHead(
@@ -101,7 +109,8 @@ class VICReg(pl.LightningModule):
                 z0 = torch.cat((z1_0, z1_1), 1)
                 z1 = torch.cat((z2_0, z2_1), 1)
             elif self.integrate == "clip":
-                loss = 0.5 * (clip_loss(z1_0, z1_1) + clip_loss(z2_0, z2_1))
+                logit_scale = self.temperature.exp()
+                loss = clip_loss(z1_0, z1_1, logit_scale, self.loss_img, self.loss_txt) + clip_loss(z2_0, z2_1, logit_scale, self.loss_img, self.loss_txt)
                 return loss
 
             else:
