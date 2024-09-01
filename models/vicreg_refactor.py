@@ -15,15 +15,17 @@ class VICReg(pl.LightningModule):
     
     def __init__(self, in_dim, hidden_dim, multimodal, factor, reg_lambda=1.0, in_dim2=0, integrate=None, predict_only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
+<<<<<<< HEAD
         self.multimodal = multimodal
         self.predict_projection = predict_projection
+
+        reg_alpha = reg_lambda # See table 7 https://arxiv.org/pdf/2105.04906
+        reg_beta = 1.0 # See table 7 https://arxiv.org/pdf/2105.04906
+        out_dim = factor*hidden_dim
+        print(out_dim)
         
         if self.multimodal:
-            print(kwargs)
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
-            reg_alpha = reg_lambda # See table 7 https://arxiv.org/pdf/2105.04906
-            reg_beta = 1.0 # See table 7 https://arxiv.org/pdf/2105.04906
-            out_dim = factor*hidden_dim
             self.projection_head = VICRegProjectionHead(
                 input_dim=hidden_dim,
                 hidden_dim=hidden_dim,
@@ -32,9 +34,6 @@ class VICReg(pl.LightningModule):
             )
 
             self.backbone2 = get_backbone_deep(in_dim2, hidden_dim, **kwargs)
-            reg_alpha = reg_lambda # See table 7 https://arxiv.org/pdf/2105.04906
-            reg_beta = 1.0 # See table 7 https://arxiv.org/pdf/2105.04906
-            out_dim = factor*hidden_dim
             self.projection_head2 = VICRegProjectionHead(
                 input_dim=hidden_dim,
                 hidden_dim=hidden_dim,
@@ -44,9 +43,6 @@ class VICReg(pl.LightningModule):
             self.criterion = VICRegLoss(reg_lambda, reg_alpha, reg_beta)
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
-            reg_alpha = reg_lambda # See table 7 https://arxiv.org/pdf/2105.04906
-            reg_beta = 1.0 # See table 7 https://arxiv.org/pdf/2105.04906
-            out_dim = factor*hidden_dim
             self.projection_head = VICRegProjectionHead(
                 input_dim=hidden_dim,
                 hidden_dim=hidden_dim,
