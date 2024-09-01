@@ -15,10 +15,12 @@ class VICReg(pl.LightningModule):
     
     def __init__(self, in_dim, hidden_dim, factor, reg_lambda=1.0, **kwargs):
         super().__init__()
+        print(kwargs)
         self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
         reg_alpha = reg_lambda # See table 7 https://arxiv.org/pdf/2105.04906
         reg_beta = 1.0 # See table 7 https://arxiv.org/pdf/2105.04906
         out_dim = factor*hidden_dim
+        print(out_dim)
         self.projection_head = VICRegProjectionHead(
             input_dim=hidden_dim,
             hidden_dim=hidden_dim,
