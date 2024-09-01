@@ -15,7 +15,6 @@ class VICReg(pl.LightningModule):
     
     def __init__(self, in_dim, hidden_dim, multimodal, factor, reg_lambda=1.0, in_dim2=0, integrate=None, predict_only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
-<<<<<<< HEAD
         self.multimodal = multimodal
         self.predict_projection = predict_projection
 
