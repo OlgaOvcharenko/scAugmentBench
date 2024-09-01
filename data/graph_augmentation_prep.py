@@ -32,7 +32,7 @@ class PreProcessingModule():
             select_hvg=True,
             scale=False,
             preprocess=True,
-            multimodal=False
+            multimodal=False,
             holdout_batch=None
         ):
         self.scale = scale

@@ -3,12 +3,17 @@ hydra:
   sweeper:
     params:
       random_seed: range(20, 21)
+      
+      augmentation.bbknn.alpha: 0.5
       augmentation.bbknn.apply_prob: 0.5
+      augmentation.bbknn.knn: 3
+      augmentation.bbknn.augment_set: ['exc']
+      augmentation.bbknn.nsize: 1
       
       +model: simclr, moco, simsiam
       +data: pbmc_multimodal
-      +augmentation: clear_pipeline
-      model.integrate: clip, add, mean, concat
+      +augmentation: base
+      model.integrate: add, clip, mean, concat
       logging.project: architecture-ablation_vol1
   job:
     name: ${random_seed}  # Set the job name to the model name
