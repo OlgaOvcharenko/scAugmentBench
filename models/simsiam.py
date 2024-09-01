@@ -7,36 +7,41 @@ from lightly.loss.negative_cosine_similarity import NegativeCosineSimilarity
 from lightly.models.modules.heads import SimSiamPredictionHead, SimSiamProjectionHead
 
 from utils.train_utils import *
-from models.model_utils import get_backbone, clip_loss
+from models.model_utils import get_backbone, get_backbone_deep, clip_loss
 
 import lightning as pl
 
 
 class SimSiam(pl.LightningModule):
 
-    def __init__(self, in_dim, hidden_dim, multimodal, hidden_dim_2, out_dim, in_dim2=0, integrate=None, **kwargs):
+    def __init__(self, in_dim, hidden_dim, multimodal, factor, hidden_dim_2, out_dim, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
         assert hidden_dim_2 <= hidden_dim, "hidden dim of prediction head should not be too large!"
         
         self.multimodal = multimodal
+        self.predict_projection = predict_projection
 
+        hidden_dim_2 = hidden_dim//(2*factor)
+        out_dim = hidden_dim//factor
+        
         if self.multimodal:
             self.integrate = integrate
+            self.predict_only_rna = only_rna
+
             self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
-            self.backbone = get_backbone(in_dim, hidden_dim, **kwargs) 
-            self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim_2, out_dim)
+            self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs) 
+            self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim, out_dim)
             self.prediction_head = SimSiamPredictionHead(out_dim, hidden_dim_2, out_dim)
             
-            self.backbone2 = get_backbone(in_dim2, hidden_dim, **kwargs)
-            self.projection_head2 = SimSiamProjectionHead(hidden_dim, hidden_dim_2, out_dim)
+            self.backbone2 = get_backbone_deep(in_dim2, hidden_dim, **kwargs)
+            self.projection_head2 = SimSiamProjectionHead(hidden_dim, hidden_dim, out_dim)
             self.prediction_head2 = SimSiamPredictionHead(out_dim, hidden_dim_2, out_dim)
             self.criterion = NegativeCosineSimilarity()
 
         else:
-            self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
-            #self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim//2, out_dim) # TODO: How to choose dimensions here?
-            self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim_2, out_dim)
+            self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
+            self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim, out_dim)
             self.prediction_head = SimSiamPredictionHead(out_dim, hidden_dim_2, out_dim)
             self.criterion = NegativeCosineSimilarity()
 
@@ -62,8 +67,14 @@ class SimSiam(pl.LightningModule):
     def predict(self, x):
         with torch.no_grad():
             if self.multimodal:
-                z1_0 = self.backbone(x[0])
-                z1_1 = self.backbone2(x[1])
+                if self.predict_projection:
+                    z1_0, _, z1_1, _ = self(x)
+                else:
+                    z1_0, z1_1 = self.backbone(x[0]), self.backbone2(x[1])
+                
+                if self.predict_only_rna:
+                    return z1_0
+
                 if self.integrate == "add":
                     z0 = z1_0 + z1_1
                 elif self.integrate == "mean":
@@ -72,7 +83,7 @@ class SimSiam(pl.LightningModule):
                     z0 = torch.cat((z1_0, z1_1), 1)
                 return z0
             else:
-                return self.backbone(x)
+                return self(x)[0] if self.predict_projection else self.backbone(x)
 
     def training_step(self, batch, batch_idx):
         if self.multimodal:

@@ -6,31 +6,33 @@ from lightly.loss.ntx_ent_loss import NTXentLoss
 from lightly.models.modules.heads import SimCLRProjectionHead
 
 from utils.train_utils import *
-from models.model_utils import get_backbone, clip_loss
+from models.model_utils import get_backbone, get_backbone_deep, clip_loss
 
 import lightning as pl
 
 
 class SimCLR(pl.LightningModule):
     
-    def __init__(self, in_dim, hidden_dim, multimodal, out_dim, in_dim2=0, integrate=None, **kwargs):
+    def __init__(self, in_dim, hidden_dim, multimodal, out_dim, in_dim2=0, integrate=None, predict_only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
 
         self.multimodal = multimodal
+        self.predict_projection = predict_projection
         
         if self.multimodal:
             self.integrate = integrate
+            self.predict_only_rna = predict_only_rna
             self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
-            self.backbone1 = get_backbone(in_dim, hidden_dim, **kwargs)
+            self.backbone1 = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head1 = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
 
-            self.backbone2 = get_backbone(in_dim2, hidden_dim, **kwargs)
+            self.backbone2 = get_backbone_deep(in_dim2, hidden_dim, **kwargs)
             self.projection_head2 = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
 
             self.criterion = NTXentLoss()
         else:
-            self.backbone = get_backbone(in_dim, hidden_dim, **kwargs)
+            self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
             self.criterion = NTXentLoss()
 
@@ -51,7 +53,11 @@ class SimCLR(pl.LightningModule):
     def predict(self, x):
         with torch.no_grad():
             if self.multimodal:
-                z1_0, z1_1 = self.backbone1(x[0]), self.backbone2(x[1])
+                z1_0, z1_1 = self(x) if self.predict_projection else self.backbone1(x[0]), self.backbone2(x[1]) 
+
+                if self.predict_only_rna:
+                    return z1_0
+
                 if self.integrate == "add":
                     z0 = z1_0 + z1_1
                 elif self.integrate == "mean":
@@ -60,7 +66,7 @@ class SimCLR(pl.LightningModule):
                     z0 = torch.cat((z1_0, z1_1), 1)
                 return z0
             else:
-                return self.backbone(x)
+                return self(x) if self.predict_projection else self.backbone(x)
 
     def training_step(self, batch, batch_index):
         if self.multimodal:
