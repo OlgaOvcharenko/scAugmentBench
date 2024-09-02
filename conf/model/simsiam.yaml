@@ -2,9 +2,8 @@ defaults:
   - model.yaml
 
 model: SimSiam
-out_dim: 12
-hidden_dim: 256
-hidden_dim_2: 256
+hidden_dim: 64
+factor: 2
 
 training:
   max_epochs: 100

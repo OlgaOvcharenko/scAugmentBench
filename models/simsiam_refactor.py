@@ -14,9 +14,8 @@ import numpy as np
 
 class SimSiam(pl.LightningModule):
 
-    def __init__(self, in_dim, hidden_dim, multimodal, factor, hidden_dim_2, out_dim, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
+    def __init__(self, in_dim, hidden_dim, multimodal, factor, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
-        assert hidden_dim_2 <= hidden_dim, "hidden dim of prediction head should not be too large!"
         
         self.multimodal = multimodal
         self.predict_projection = predict_projection
@@ -46,6 +45,9 @@ class SimSiam(pl.LightningModule):
 
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
+            hidden_dim_2 = hidden_dim//(2*factor)
+            out_dim = hidden_dim//factor
+            
             self.projection_head = SimSiamProjectionHead(hidden_dim, hidden_dim, out_dim)
             self.prediction_head = SimSiamPredictionHead(out_dim, hidden_dim_2, out_dim)
             self.criterion = NegativeCosineSimilarity()
