@@ -75,8 +75,11 @@ class VICReg(pl.LightningModule):
     def predict(self, x):
         with torch.no_grad():
             if self.multimodal:
-                z1_0, z1_1 = self(x) if self.predict_projection else self.backbone(x[0]), self.backbone2(x[1]) 
-
+                if self.predict_projection:
+                    z1_0, z1_1 = self(x)  
+                else:
+                    z1_0, z1_1 = self.backbone(x[0]), self.backbone2(x[1])
+                
                 if self.predict_only_rna:
                     return z1_0
 

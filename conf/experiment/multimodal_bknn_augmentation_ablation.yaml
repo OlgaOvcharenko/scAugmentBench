@@ -14,7 +14,7 @@ hydra:
       +data: pbmc_multimodal
       +augmentation: base
       model.integrate: add, concat, mean, clip
-      model.predict_only_rna: False
+      model.predict_only_rna: False, True
       model.predict_projection: False, True 
       logging.project: architecture-ablation_vol1
   job:

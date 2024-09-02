@@ -155,8 +155,6 @@ class Concerto(pl.LightningModule):
     def predict(self, x):
         with torch.no_grad():
             if self.multimodal:
-                z0, z1 = self.student_encoder(x[0]), self.student_encoder2(x[1])
-
                 x0, x1 = x[0], x[1]
                 x0 = self.bn1(x0)
                 torch.nn.functional.relu_(x0)
