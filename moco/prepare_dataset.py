@@ -478,7 +478,7 @@ def prepare_Neurips_cite_Multimodal(data_root):
 
     df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
     df_meta[configs.label_key] = df_meta[label_key].astype('category')
-
+    
     return X, gene_name, cell_name, [df_meta, modality]
 
 # Function taken from concerto

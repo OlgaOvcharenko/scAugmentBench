@@ -11,7 +11,7 @@ import wandb
 import scanpy as sc
 import pandas as pd
 
-from trainer import train_model, train_clf
+from trainer import train_model, train_clf, train_clf_multimodal
 from evaluator import evaluate_model
 from data.graph_augmentation_prep import *
 from data.dataset import OurDataset, OurMultimodalDataset
@@ -85,20 +85,22 @@ def load_data_multimodal(config) -> sc.AnnData:
     if config['augmentation']['bbknn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with bbknn.")
         pm = BbknnAugment(data_path, select_hvg=None, scale=False, knn=augmentation_config['bbknn']['knn'],
-                     exclude_fn=False, trim_val=None, preprocess=False, multimodal=True)
+                     exclude_fn=False, trim_val=None, preprocess=False, multimodal=True, holdout_batch=config["data"]["holdout_batch"]
+                     )
         augmentation_list1 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] == 'RNA'], nns=pm.nns)
         augmentation_list2 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] != 'RNA'], nns=pm.nns)
 
     elif config['augmentation']['mnn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with mnn.")
         pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['mnn']['knn'],
-                     exclude_fn=False, filtering=True, preprocess=False, multimodal=True)
+                     exclude_fn=False, filtering=True, preprocess=False, multimodal=True, holdout_batch=config["data"]["holdout_batch"]
+                     )
         augmentation_list1 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] == 'RNA'], nns=pm.nns, mnn_dict=pm.mnn_dict)
         augmentation_list2 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] != 'RNA'], nns=pm.nns, mnn_dict=pm.mnn_dict)
 
     else:
         _LOGGER.info("Preprocessing without bbknn.")
-        pm = PreProcessingModule(data_path, select_hvg=None, scale=False, preprocess=False, multimodal=True)
+        pm = PreProcessingModule(data_path, select_hvg=None, scale=False, preprocess=False, multimodal=True, holdout_batch=config["data"]["holdout_batch"])
         augmentation_list1 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] == 'RNA'])
         augmentation_list2 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] != 'RNA'])
 
@@ -218,18 +220,36 @@ def main(cfg: DictConfig):
     elif cfg["data"]["holdout_batch"] is not None:
         _LOGGER.info("Running QR-Mapper-Inference.")
         _LOGGER.info(f"Results of QR-Mapper will be saved in {results_dir}")
-        # load total adata, and get holdout-subset as Val_X and Y for clf-training
-        pm = PreProcessingModule(cfg["data"]["data_path"], select_hvg=cfg["data"]["n_hvgs"], 
-                                 scale=False, holdout_batch=None)
-        if type(cfg["data"]["holdout_batch"]) == str:
-            fltr = pm.adata.obs['batchlb']==cfg["data"]["holdout_batch"]
+
+        if "_multimodal" in cfg["data"]["data_path"]:
+            # load total adata, and get holdout-subset as Val_X and Y for clf-training
+            pm = PreProcessingModule(cfg["data"]["data_path"], select_hvg=None, 
+                                    scale=False, holdout_batch=None, preprocess=False, multimodal=True)
+
+            if type(cfg["data"]["holdout_batch"]) == str:
+                fltr = pm.adata.obs['batchlb']==cfg["data"]["holdout_batch"]
+            else:
+                fltr = [pm.adata.obs['batchlb'][i] in cfg["data"]["holdout_batch"] for i in range(len(pm.adata))]
+            
+            train_adata = ad
+            val_adata = pm.adata[fltr]
+            clf, maavg_f1, acc, run_time = train_clf_multimodal(model, train_adata, val_adata, ctype_key='CellType')
+
         else:
-            fltr = [pm.adata.obs['batchlb'][i] in cfg["data"]["holdout_batch"] for i in range(len(pm.adata))]
-        
-        train_adata = ad
-        val_adata = pm.adata[fltr]
-        clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType')
-        
+            # load total adata, and get holdout-subset as Val_X and Y for clf-training
+            pm = PreProcessingModule(cfg["data"]["data_path"], select_hvg=cfg["data"]["n_hvgs"], 
+                                    scale=False, holdout_batch=None)
+            if type(cfg["data"]["holdout_batch"]) == str:
+                fltr = pm.adata.obs['batchlb']==cfg["data"]["holdout_batch"]
+            else:
+                fltr = [pm.adata.obs['batchlb'][i] in cfg["data"]["holdout_batch"] for i in range(len(pm.adata))]
+            
+            train_adata = ad
+            val_adata = pm.adata[fltr]
+            print(train_data.obs["batch"].value_counts())
+            print(val_adata.obs["batch"].value_counts())
+            clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType')
+            
         results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
         results.to_csv(os.path.join(results_dir, "qr-results.csv"))
         print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
