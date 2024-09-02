@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import json
 import dbm
+import omegaconf
 
 import scipy.sparse as sps
 from itertools import product
@@ -48,7 +49,7 @@ class PreProcessingModule():
         if type(self.holdout_batch) == str:
             fltr = list(metadata[configs.batch_key] != self.holdout_batch)
             sps_x, cells, metadata = sps_x[:, fltr], cells[fltr], metadata[fltr]
-        elif type(self.holdout_batch) == list:
+        elif type(self.holdout_batch) == omegaconf.listconfig.ListConfig:
             fltr = [metadata[configs.batch_key][i] not in self.holdout_batch for i in range(len(metadata))]
             sps_x, cells, metadata = sps_x[:, fltr], cells[fltr], metadata[fltr]
 
