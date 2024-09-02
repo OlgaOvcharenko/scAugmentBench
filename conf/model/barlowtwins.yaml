@@ -2,7 +2,8 @@ defaults:
   - model.yaml
 
 model: BarlowTwins
-hidden_dim: 128
+hidden_dim: 64
+factor: 4
 
 training:
   max_epochs: 200

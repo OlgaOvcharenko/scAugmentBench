@@ -2,8 +2,8 @@ defaults:
   - model.yaml
 
 model: SimCLR
-out_dim: 12
-hidden_dim: 128
+out_dim: 16
+hidden_dim: 64
 
 training:
   max_epochs: 200

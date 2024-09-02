@@ -2,9 +2,9 @@ defaults:
   - model.yaml
 
 model: MoCo
-out_dim: 12
-hidden_dim: 16
-memory_bank_size: 4096
+out_dim: 16
+hidden_dim: 64
+memory_bank_size: 2048
 
 training:
   max_epochs: 200
