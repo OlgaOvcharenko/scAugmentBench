@@ -16,7 +16,6 @@ class SimSiam(pl.LightningModule):
 
     def __init__(self, in_dim, hidden_dim, factor, **kwargs):
         super().__init__()
-        assert hidden_dim_2 <= hidden_dim, "hidden dim of prediction head should not be too large!"
         self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
         hidden_dim_2 = hidden_dim//(2*factor)
         out_dim = hidden_dim//factor
