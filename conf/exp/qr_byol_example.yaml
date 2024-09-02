@@ -1,0 +1,18 @@
+# @package _global_
+hydra:
+  sweeper:
+    params:
+      random_seed: range(20, 25)
+      model.hidden_dim: 64
+      model.factor: 2
+      model.training.max_epochs: 200
+      +model: barlowtwins
+      +data: mouse
+      data.holdout_batch: ["Batch1"]
+      +augmentation: clear_pipeline
+      logging.project: architecture-ablation_vol1
+  job:
+    name: ${random_seed}
+  sweep:
+    dir: ablation-db-2/qr-mapper-test/
+    subdir: ${data.dname}/${model.model}/${random_seed}
