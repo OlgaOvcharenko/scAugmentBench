@@ -230,6 +230,8 @@ def main(cfg: DictConfig):
         val_adata = pm.adata[fltr]
         clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType')
         
+        results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
+        results.to_csv(os.path.join(results_dir, "qr-results.csv"))
         print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
         _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
 
