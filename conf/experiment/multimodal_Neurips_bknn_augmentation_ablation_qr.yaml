@@ -2,7 +2,7 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 21)
+      random_seed: range(20, 25)
       
       augmentation.bbknn.alpha: 0.5
       augmentation.bbknn.apply_prob: 0.5
@@ -14,7 +14,7 @@ hydra:
       +data: neurips_cite_multimodal
       data.holdout_batch: ["s4d1", "s4d9"]
       +augmentation: base
-      model.integrate: add, concat, mean, clip
+      model.integrate: add, concat, clip
       model.predict_only_rna: False, True
       model.predict_projection: False, True 
       model.in_dim2: 134
