@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import json
 import dbm
-
 import omegaconf
 
 import scipy.sparse as sps
@@ -33,15 +32,11 @@ class PreProcessingModule():
             data_dir,
             select_hvg=True,
             scale=False,
-            preprocess=True,
-            multimodal=False,
             holdout_batch=None
         ):
         self.scale = scale
         self.data_dir = data_dir  # data_root/dataset_name
         self.select_hvg = select_hvg
-        self.preprocess = preprocess
-        self.multimodal = multimodal
         self.holdout_batch = holdout_batch
         self.load_data()
     
@@ -50,9 +45,7 @@ class PreProcessingModule():
         sps_x, genes, cells, metadata = prepare_dataset(self.data_dir)
         if type(metadata) == list and len(metadata) == 3:
             metadata, X_cnv, cnv_mapping = metadata
-        elif type(metadata) == list and len(metadata) == 2 and self.multimodal:
-            metadata, modality = metadata
-
+        
         if type(self.holdout_batch) == str:
             fltr = list(metadata[configs.batch_key] != self.holdout_batch)
             sps_x, cells, metadata = sps_x[:, fltr], cells[fltr], metadata[fltr]
@@ -67,9 +60,8 @@ class PreProcessingModule():
             metadata,
             self.select_hvg,
             self.scale,
-            self.preprocess
-        )
-        
+            )
+
         self.X = X   # sparse
         self.metadata = metadata
         self.gname = gene_name
@@ -81,9 +73,6 @@ class PreProcessingModule():
         self.adata.obs = metadata.copy()
         self.adata.uns = adata.uns
         self.adata.var = adata.var
-
-        if self.multimodal:
-            self.adata.var["modality"] = modality
         
         self.n_sample = self.X.shape[0]
         self.n_feature = self.X.shape[1]
@@ -125,13 +114,10 @@ class ClaireAugment(PreProcessingModule):
             knn = 10, # defines number of neighbors to compute
             exclude_fn=True,
             k_anchor=5,
-            filtering=True, 
-            preprocess=True,
-            multimodal=False,
+            filtering=True,
             **kwargs,
         ):
-        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal, **kwargs)
-
+        super().__init__(data_dir, select_hvg, scale, **kwargs)
         self.k_anchor = k_anchor
         self.knn = knn
         self.exclude_fn = exclude_fn
@@ -336,12 +322,10 @@ class BbknnAugment(PreProcessingModule):
             scale=False, 
             knn = 10, # defines number of neighbors to compute
             exclude_fn=False,
-            trim_val=None, 
-            preprocess=True,
-            multimodal=False,
+            trim_val=None,
             **kwargs,
         ):
-        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal, **kwargs,)
+        super().__init__(data_dir, select_hvg, scale, **kwargs)
         self.knn = knn
         self.exclude_fn = exclude_fn
         self.trim = trim_val
@@ -422,46 +406,3 @@ class BbknnAugment(PreProcessingModule):
         for i in range(len(adata)):
             if i not in tmp:
                 self.nns[i].append(i)
-    
-    """def exclude_sampleWithoutNNS(self, exclude_fn):
-        self.valid_cellidx = np.unique(list(self.mnn_dict.keys())) if exclude_fn else np.arange(self.n_sample)
-        print(f"Samples before: {self.n_sample}, Samples after: {self.valid_cellidx.shape}")
-        dct = defaultdict(list)
-        for cid in self.valid_cellidx:
-            dct[int(cid)] = self.mnn_dict[cid] if cid in self.mnn_dict.keys() else [int(cid)]
-        self.mnn_dict = dct
-        self.n_sample = len(self.valid_cellidx)
-        self.store_mnn_dict()
-        print(f'Number of training samples = {len(self.valid_cellidx)}')
-        
-    def filter_anchors(self, emb=None, fltr='gmm', yita=.5):
-        # if embeddings not provided, then using HVGs
-        if emb is None:
-            emb = self.X.A.copy()
-            emb = emb / np.sqrt(np.sum(emb**2, axis=1, keepdims=True)) # l2-normalization
-
-        pairs = self.pairs
-        cos_sim = np.sum(emb[pairs[:, 0]] * emb[pairs[:, 1]], axis=1)  # dot prod
-
-        if fltr=='gmm':    
-            sim_pairs = cos_sim.reshape(-1, 1)
-            gm = GaussianMixture(n_components=2, random_state=0).fit(sim_pairs)
-
-            gmm_c = gm.predict(sim_pairs)
-            gmm_p = gm.predict_proba(sim_pairs)
-
-            # take the major component
-            _, num_c = np.unique(gmm_c, return_counts=True)  
-            c = np.argmax(num_c)
-
-            filter_mask = gmm_p[:, c]>=yita
-        # if filter is not gmm => naive filter
-        # given similarity, taking quantile
-        else:
-            pairs = self.pairs
-            cos_sim = np.sum(emb[pairs[:, 0]] * emb[pairs[:, 1]], axis=1)  # dot prod
-
-            filter_thr = np.quantile(cos_sim, yita)
-            filter_mask = cos_sim >= filter_thr
-
-        self.pairs = pairs[filter_mask]"""
