@@ -7,11 +7,8 @@ lightning_logs
 figures
 ablation-db
 exp copy
-<<<<<<< HEAD
 
 .DS_Store
 Figure_1.png
 
-=======
 tables
->>>>>>> d01742f (Model initialization adapted (SimCLR, MoCo))
