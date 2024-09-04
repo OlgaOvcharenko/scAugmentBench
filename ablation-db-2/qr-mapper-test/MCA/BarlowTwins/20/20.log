@@ -1,0 +1,31 @@
+[2024-09-02 20:13:14,230][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/ablation-db-2/qr-mapper-test/MCA/BarlowTwins/20
+[2024-09-02 20:13:14,241][__main__][INFO] - Set random seed to 20
+[2024-09-02 20:13:14,241][__main__][INFO] - Successfully reset seeds.
+[2024-09-02 20:13:14,241][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/MouseCellAtlas
+[2024-09-02 20:13:14,241][__main__][INFO] - Preprocessing without bbknn.
+[2024-09-02 20:13:15,616][__main__][INFO] - Augmentations generated.
+[2024-09-02 20:13:15,895][__main__][INFO] - Finished loading data.....
+[2024-09-02 20:13:15,896][__main__][INFO] - Start training (BarlowTwins)
+[2024-09-02 20:13:15,896][__main__][INFO] - CUDA available: True
+[2024-09-02 20:13:15,896][__main__][INFO] - .. Dataloader ready. Now build BarlowTwins
+[2024-09-02 20:13:16,002][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-09-02 20:13:24,225][__main__][INFO] - .. Training done.
+[2024-09-02 20:13:24,226][__main__][INFO] - Training of the model took 8.329 seconds.
+[2024-09-02 20:13:24,226][__main__][INFO] - Running QR-Mapper-Inference.
+[2024-09-02 20:13:24,226][__main__][INFO] - Results of QR-Mapper will be saved in /local/home/tomap/scAugmentBench/ablation-db-2/qr-mapper-test/MCA/BarlowTwins/20
+[2024-09-02 20:14:02,167][__main__][INFO] - Results stored in /local/home/tomap/scAugmentBench/ablation-db-2/qr-mapper-test/MCA/BarlowTwins/20
+[2024-09-02 20:14:02,178][__main__][INFO] - Set random seed to 20
+[2024-09-02 20:14:02,178][__main__][INFO] - Successfully reset seeds.
+[2024-09-02 20:14:02,178][__main__][INFO] - Loading data from ../own_model/CLAIRE-data/MouseCellAtlas
+[2024-09-02 20:14:02,178][__main__][INFO] - Preprocessing without bbknn.
+[2024-09-02 20:14:03,572][__main__][INFO] - Augmentations generated.
+[2024-09-02 20:14:03,849][__main__][INFO] - Finished loading data.....
+[2024-09-02 20:14:03,849][__main__][INFO] - Start training (BarlowTwins)
+[2024-09-02 20:14:03,849][__main__][INFO] - CUDA available: True
+[2024-09-02 20:14:03,850][__main__][INFO] - .. Dataloader ready. Now build BarlowTwins
+[2024-09-02 20:14:03,957][__main__][INFO] - .. Model ready. Now train on cuda.
+[2024-09-02 20:17:50,688][__main__][INFO] - .. Training done.
+[2024-09-02 20:17:50,689][__main__][INFO] - Training of the model took 226.839 seconds.
+[2024-09-02 20:17:50,689][__main__][INFO] - Running QR-Mapper-Inference.
+[2024-09-02 20:17:50,689][__main__][INFO] - Results of QR-Mapper will be saved in /local/home/tomap/scAugmentBench/ablation-db-2/qr-mapper-test/MCA/BarlowTwins/20
+[2024-09-02 20:17:53,632][__main__][INFO] - Finished Training of the QR-Mapper in 0.9573285579681396 seconds.

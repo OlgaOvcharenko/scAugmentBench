@@ -18,9 +18,10 @@ import lightning as pl
 
 
 class MoCo(pl.LightningModule):
-    def __init__(self, in_dim, hidden_dim, out_dim, memory_bank_size, max_epochs=200, **kwargs):
+    def __init__(self, in_dim, hidden_dim, factor, memory_bank_size, max_epochs=200, **kwargs):
         super().__init__()
         self.max_epochs = max_epochs
+        out_dim=hidden_dim//factor
         self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
         self.projection_head = MoCoProjectionHead(hidden_dim, hidden_dim, out_dim)
 

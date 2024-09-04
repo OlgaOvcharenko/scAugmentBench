@@ -31,6 +31,7 @@ def infer_embedding(model, val_loader):
     embedding = np.array(embedding)
     return embedding
 
+
 def infer_projector_embedding(model, val_loader):
     outs = []
     for x in val_loader:

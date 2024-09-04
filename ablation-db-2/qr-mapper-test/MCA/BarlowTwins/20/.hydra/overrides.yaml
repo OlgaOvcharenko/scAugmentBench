@@ -1,0 +1,10 @@
+- random_seed=20
+- model.hidden_dim=64
+- model.factor=2
+- model.training.max_epochs=200
+- +model=barlowtwins
+- +data=mouse
+- data.holdout_batch=['Batch1']
+- +augmentation=clear_pipeline
+- logging.project=architecture-ablation_vol1
+- +exp=qr_byol

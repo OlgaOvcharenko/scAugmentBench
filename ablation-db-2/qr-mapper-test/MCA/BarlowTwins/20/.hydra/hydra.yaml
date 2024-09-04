@@ -2,8 +2,8 @@ hydra:
   run:
     dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
   sweep:
-    dir: ablation-db-2/architecture-ablation/
-    subdir: ${data.dname}/${model.model}/${model.hidden_dim}/${random_seed}
+    dir: ablation-db-2/qr-mapper-test/
+    subdir: ${data.dname}/${model.model}/${random_seed}
   launcher:
     _target_: hydra._internal.core_plugins.basic_launcher.BasicLauncher
   sweeper:
@@ -11,11 +11,13 @@ hydra:
     max_batch_size: null
     params:
       random_seed: range(20, 25)
-      model.hidden_dim: choice(16, 32, 64)
-      model.out_dim: choice(8, 16)
+      model.hidden_dim: '64'
+      model.factor: '2'
       model.training.max_epochs: '200'
-      +model: simclr
-      +data: mouse, immune
+      +model: barlowtwins
+      +data: mouse
+      data.holdout_batch:
+      - Batch1
       +augmentation: clear_pipeline
       logging.project: architecture-ablation_vol1
   help:
@@ -112,21 +114,30 @@ hydra:
       - file
     disable_existing_loggers: false
   env: {}
-  mode: RUN
+  mode: MULTIRUN
   searchpath: []
   callbacks: {}
   output_subdir: .hydra
   overrides:
     hydra:
-    - hydra.mode=RUN
+    - hydra.mode=MULTIRUN
     task:
-    - +exp=moco_ablation
+    - random_seed=20
+    - model.hidden_dim=64
+    - model.factor=2
+    - model.training.max_epochs=200
+    - +model=barlowtwins
+    - +data=mouse
+    - data.holdout_batch=['Batch1']
+    - +augmentation=clear_pipeline
+    - logging.project=architecture-ablation_vol1
+    - +exp=qr_byol
   job:
     name: ${random_seed}
     chdir: null
-    override_dirname: +exp=moco_ablation
-    id: ???
-    num: ???
+    override_dirname: +augmentation=clear_pipeline,+data=mouse,+exp=qr_byol,+model=barlowtwins,data.holdout_batch=['Batch1'],logging.project=architecture-ablation_vol1,model.factor=2,model.hidden_dim=64,model.training.max_epochs=200,random_seed=20
+    id: '0'
+    num: 0
     config_name: config
     env_set: {}
     env_copy: []
@@ -149,9 +160,12 @@ hydra:
     - path: ''
       schema: structured
       provider: schema
-    output_dir: /local/home/tomap/scAugmentBench/outputs/2024-08-30/18-38-14
+    output_dir: /local/home/tomap/scAugmentBench/ablation-db-2/qr-mapper-test/MCA/BarlowTwins/20
     choices:
-      exp: moco_ablation
+      exp: qr_byol
+      augmentation: clear_pipeline
+      data: mouse
+      model: barlowtwins
       hydra/env: default
       hydra/callbacks: null
       hydra/job_logging: default

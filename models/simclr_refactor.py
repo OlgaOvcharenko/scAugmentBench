@@ -13,8 +13,9 @@ import lightning as pl
 
 class SimCLR(pl.LightningModule):
     
-    def __init__(self, in_dim, hidden_dim, out_dim, **kwargs):
+    def __init__(self, in_dim, hidden_dim, factor, **kwargs):
         super().__init__()
+        out_dim=hidden_dim//factor
         self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
         self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
         self.criterion = NTXentLoss()
