@@ -18,12 +18,13 @@ import lightning as pl
 import numpy as np
 
 class MoCo(pl.LightningModule):
-    def __init__(self, in_dim, hidden_dim, multimodal, out_dim, memory_bank_size, max_epochs=200, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
+    def __init__(self, in_dim, hidden_dim, factor, multimodal, out_dim, memory_bank_size, max_epochs=200, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
 
         self.multimodal = multimodal
         self.max_epochs = max_epochs
         self.predict_projection = predict_projection
+        out_dim=hidden_dim//factor
         
         if self.multimodal:
             self.integrate = integrate

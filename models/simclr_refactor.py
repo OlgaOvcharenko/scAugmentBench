@@ -18,6 +18,7 @@ class SimCLR(pl.LightningModule):
 
         self.multimodal = multimodal
         self.predict_projection = predict_projection
+        out_dim=hidden_dim//factor
         
         if self.multimodal:
             self.integrate = integrate

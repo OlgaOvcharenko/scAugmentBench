@@ -2,7 +2,7 @@ defaults:
   - model.yaml
 
 model: MoCo
-out_dim: 16
+factor: 2
 hidden_dim: 64
 memory_bank_size: 2048
 

@@ -12,10 +12,7 @@ def run_scib(tmp, seed, adata):
         print(os.path.join(tmp, seed,))
         reset_random_seeds(int(seed))
         # recalculate scib-metrics.
-        if not os.path.exists(os.path.join(tmp, seed, "embedding.npz")):
-            print(f"Removing {os.path.join(tmp, seed)} (no embedding)")
-            shutil.rmtree(os.path.join(tmp, seed))
-        else:
+        if os.path.exists(os.path.join(tmp, seed, "embedding.npz")):
             print(f"Calculate @ {os.path.join(tmp, seed)}")
             emb = np.load(os.path.join(tmp, seed, "embedding.npz"))['arr_0']
             results = recalculate_results(adata, emb, 12)
@@ -34,7 +31,6 @@ parser.add_argument('--project_directory', default='immune', type=str,
 
 args = parser.parse_args()
 dname_root = args.dname_root
-
 
 
 with open(f"{args.project_directory}/conf/data/{args.dataset}.yaml") as stream:
@@ -57,6 +53,13 @@ for mname in os.listdir(dname_root):
                     tmp = os.path.join(dname_root, mname, param, param2)
                     run_scib(tmp, seed, adata)
         except:
-            for seed in  os.listdir(os.path.join(dname_root, mname, param)):
-                tmp = os.path.join(dname_root, mname, param)
-                run_scib(tmp, seed, adata)
+            try:
+                for param2 in os.listdir(os.path.join(dname_root, mname, param)):
+                    for param3 in os.listdir(os.path.join(dname_root, mname, param, param2)):
+                        for seed in  os.listdir(os.path.join(dname_root, mname, param, param2, param3)):
+                            tmp = os.path.join(dname_root, mname, param, param2, param3)
+                            run_scib(tmp, seed, adata)
+            except:
+                for seed in  os.listdir(os.path.join(dname_root, mname, param)):
+                    tmp = os.path.join(dname_root, mname, param)
+                    run_scib(tmp, seed, adata)
