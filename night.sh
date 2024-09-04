@@ -1,2 +1,2 @@
-python main.py --multirun +exp='dimension_ablation_h1-64'
-python main.py --multirun +exp='dimension_ablation_h1-32'
+python main.py --multirun +exp=simsiam_ablation
+python main.py --multirun +exp=nnclr_ablation

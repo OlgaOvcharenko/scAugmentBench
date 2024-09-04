@@ -1,2 +1,2 @@
-python main.py --multirun +exp='dimension_ablation_h1-16'
-python main.py --multirun +exp='dimension_ablation_h1-8'
+python main.py --multirun +exp=simclr_ablation
+python main.py --multirun +exp=moco_ablation
