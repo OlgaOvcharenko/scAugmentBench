@@ -17,7 +17,7 @@ hydra:
       model.predict_only_rna: False, True
       model.predict_projection: False, True 
       model.in_dim2: 134
-      logging.project: architecture-ablation_vol2
+      logging.project: architecture-ablation_vol0
   job:
     name: ${random_seed}  # Set the job name to the model name
   sweep:

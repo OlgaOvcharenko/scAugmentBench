@@ -41,12 +41,17 @@ class OurDataset(Dataset):
 
 class OurMultimodalDataset(Dataset):
 
-    def __init__(self, adata, transforms=None, valid_ids=None):
+    def __init__(self, adata, transforms=None, valid_ids=None, new_protein=None):
         super().__init__()
         self.transforms = transforms
         self.adata = adata
         
         ix = adata.var["modality"] == 'RNA'
+        
+        if new_protein is not None:
+            print("New protein")
+            self.adata[:, ix == False] = new_protein
+
         self.adata1 = adata[:, ix]
         self.adata2 = adata[:, ix == False]
 

@@ -3,7 +3,7 @@ defaults:
 
 model: VICReg
 hidden_dim: 64
-reg_lambda: 10.0
+reg_lambda: 5.0
 reg_alpha: 10.0
 reg_beta: 1.0
 

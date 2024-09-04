@@ -11,7 +11,7 @@ import wandb
 import scanpy as sc
 import pandas as pd
 
-from trainer import train_model, train_clf, train_clf_multimodal
+from trainer import train_model, train_clf, train_clf_multimodal, predict_protein_multimodal
 from evaluator import evaluate_model
 from data.graph_augmentation_prep import *
 from data.dataset import OurDataset, OurMultimodalDataset
@@ -233,7 +233,18 @@ def main(cfg: DictConfig):
             
             train_adata = ad
             val_adata = pm.adata[fltr]
-            clf, maavg_f1, acc, run_time = train_clf_multimodal(model, train_adata, val_adata, ctype_key='CellType')
+
+            if cfg["model"]["predict_only_rna"]:
+                clf, maavg_f1, acc, run_time = train_clf_multimodal(model, train_adata, val_adata, ctype_key='CellType')
+
+                results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
+                results.to_csv(os.path.join(results_dir, "qr-results.csv"))
+                print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
+                _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
+
+            else:
+                # FIXME
+                predict_protein_multimodal(model, train_adata, val_adata, ctype_key='CellType')
 
         else:
             # load total adata, and get holdout-subset as Val_X and Y for clf-training
@@ -249,11 +260,11 @@ def main(cfg: DictConfig):
             print(train_data.obs["batch"].value_counts())
             print(val_adata.obs["batch"].value_counts())
             clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType')
-            
-        results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
-        results.to_csv(os.path.join(results_dir, "qr-results.csv"))
-        print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
-        _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
+
+            results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
+            results.to_csv(os.path.join(results_dir, "qr-results.csv"))
+            print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
+            _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
 
 
 if __name__ == "__main__":

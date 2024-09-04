@@ -31,6 +31,25 @@ def infer_embedding(model, val_loader):
     embedding = np.array(embedding)
     return embedding
 
+def infer_embedding_separate(model, val_loader):
+    outs, rnas, proteins = [], [], []
+    for x in val_loader:
+        with torch.no_grad():
+            out, rna, protein = model.predict_separate(x[0])
+            outs.append(out)
+            rnas.append(rna)
+            proteins.append(protein)
+    
+    embedding = torch.concat(outs)
+    embedding = np.array(embedding)
+
+    embedding_rna = torch.concat(rnas)
+    embedding_rna = np.array(embedding_rna)
+
+    embedding_protein = torch.concat(proteins)
+    embedding_protein = np.array(embedding_protein)
+    return embedding, embedding_rna, embedding_protein
+
 def infer_projector_embedding(model, val_loader):
     outs = []
     for x in val_loader:

@@ -18,12 +18,12 @@ from models.simsiam_refactor import SimSiam
 from models.nnclr_refactor import NNCLR
 from models.concerto import Concerto
 #from models.dino import *
-from evaluator import infer_embedding
+from evaluator import infer_embedding, infer_embedding_separate
 from anndata.experimental.pytorch import AnnLoader
 from data.dataset import OurDataset, OurMultimodalDataset
 
 from sklearn.metrics import f1_score, accuracy_score
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier, NearestNeighbors
 import os
 
 _model_dict = {"BYOL": BYOL, "BarlowTwins": BarlowTwins, "MoCo": MoCo, "VICReg": VICReg, "SimCLR": SimCLR, "SimSiam": SimSiam, "NNCLR": NNCLR, "Concerto": Concerto}
@@ -157,6 +157,64 @@ def train_clf_multimodal(encoder, train_adata, val_adata, batch_size=256, num_wo
 
     start = time.time()
     train_X, val_X = infer_embedding(encoder, train_loader), infer_embedding(encoder, val_loader)
+    train_y = train_adata.obs[ctype_key]
+    val_y = val_adata.obs[ctype_key]
+    
+    clf = KNeighborsClassifier(n_neighbors=11)
+    clf = clf.fit(train_X, train_y)
+    run_time = time.time() - start
+    
+    y_pred = clf.predict(val_X)
+    
+    maavg_f1 = f1_score(val_y, y_pred, average='macro')
+    accuracy = accuracy_score(val_y, y_pred)
+    return clf, maavg_f1, accuracy, run_time
+
+def predict_protein_multimodal(encoder, train_adata, val_adata, batch_size=256, num_workers=12, ctype_key='CellType'):
+    train_dataset = OurMultimodalDataset(adata=train_adata, transforms=None, valid_ids=None)
+    train_loader = torch.utils.data.DataLoader(
+        dataset=train_dataset,
+        batch_size=batch_size, 
+        num_workers=num_workers,
+        shuffle=False, 
+        drop_last=False
+    )
+    val_dataset = OurMultimodalDataset(adata=val_adata, transforms=None, valid_ids=None)
+    val_loader = torch.utils.data.DataLoader(
+        dataset=val_dataset,
+        batch_size=batch_size, 
+        num_workers=num_workers,
+        shuffle=False, 
+        drop_last=False
+    )
+
+    start = time.time()
+    train_X, train_rna, _ = infer_embedding_separate(encoder, train_loader)
+    _, val_rna, _ = infer_embedding_separate(encoder, val_loader)
+
+    # self.adata2.X
+
+    # TODO predict actual protein and measure Pearson correlation
+    nbrs = NearestNeighbors(metric='cosine', n_neighbors=5, algorithm='auto').fit(train_rna)
+    indices = nbrs.kneighbors(val_rna, return_distance=False)
+
+    val_new_protein = []
+    for i, ix in enumerate(indices):
+        pred_protein = np.array(train_dataset.adata2.X[ix, :].mean(axis=0)[0])
+        true_protein = np.array(val_dataset.adata2.X[i, :])
+
+        print(pred_protein.__class__)
+        print(true_protein.__class__)
+        
+
+        pearson = np.corrcoef(pred_protein, true_protein)[0, 1]
+        val_new_protein.append(pred_protein)
+
+        print(pearson)
+        exit()
+
+    # Infer embedding with predicted protein
+
     train_y = train_adata.obs[ctype_key]
     val_y = val_adata.obs[ctype_key]
     
