@@ -2,7 +2,7 @@ defaults:
   - model.yaml
 
 model: SimCLR
-out_dim: 16
+factor: 2
 hidden_dim: 64
 
 training:
