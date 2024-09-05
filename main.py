@@ -234,17 +234,18 @@ def main(cfg: DictConfig):
             train_adata = ad
             val_adata = pm.adata[fltr]
 
-            if cfg["model"]["predict_only_rna"]:
-                clf, maavg_f1, acc, run_time = train_clf_multimodal(model, train_adata, val_adata, ctype_key='CellType')
+            # Extended predict: only RNA together with full and modality prediction
+            (clf, maavg_f1, acc, run_time), (maavg_f1_2, acc2, mean_pearson, min_pearson, max_pearson, run_time2), (clf_rna, maavg_f1_rna, acc_rna, run_time3) = predict_protein_multimodal(model, train_adata, val_adata, ctype_key='CellType')
+            
+            results2 = pd.DataFrame([maavg_f1_2, acc2, mean_pearson, min_pearson, max_pearson, run_time2], index=["Macro-F1", "Accuracy", "Mean-Pearson", "Min-Pearson", "Max-Pearson", "Run-Time"])
+            results2.to_csv(os.path.join(results_dir, "mp-results.csv"))
+            print(f"MaAVG-F1 Modality Pred.: {maavg_f1_2}\nAccuracy: {acc2}\nMean Pearson Modality Pred.: {mean_pearson}\nMin Pearson Modality Pred.: {min_pearson}\Max Pearson Modality Pred.: {max_pearson}\n\n")
+            _LOGGER.info(f"Finished Training of the MP-Mapper in {run_time2} seconds.")
 
-                results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
-                results.to_csv(os.path.join(results_dir, "qr-results.csv"))
-                print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
-                _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
-
-            else:
-                # FIXME
-                predict_protein_multimodal(model, train_adata, val_adata, ctype_key='CellType')
+            results_rna = pd.DataFrame([maavg_f1_rna, acc_rna, run_time3], index=["Macro-F1", "Accuracy", "Run-Time"])
+            results_rna.to_csv(os.path.join(results_dir, "qr-onlyRNA-results.csv"))
+            print(f"MaAVG-F1 Only RNA: {maavg_f1_rna}\nAccuracy  Only RNA: {acc_rna}\n\n")
+            _LOGGER.info(f"Finished Training of the QR-Mapper onlyRNA in {run_time3} seconds.")
 
         else:
             # load total adata, and get holdout-subset as Val_X and Y for clf-training
@@ -257,14 +258,12 @@ def main(cfg: DictConfig):
             
             train_adata = ad
             val_adata = pm.adata[fltr]
-            print(train_data.obs["batch"].value_counts())
-            print(val_adata.obs["batch"].value_counts())
             clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType')
 
-            results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
-            results.to_csv(os.path.join(results_dir, "qr-results.csv"))
-            print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
-            _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
+        results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
+        results.to_csv(os.path.join(results_dir, "qr-results.csv"))
+        print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc}")
+        _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
 
 
 if __name__ == "__main__":

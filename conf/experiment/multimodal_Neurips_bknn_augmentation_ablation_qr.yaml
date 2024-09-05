@@ -12,10 +12,10 @@ hydra:
       
       +model: simclr, moco, simsiam, vicreg, nnclr, byol, barlowtwins
       +data: neurips_cite_multimodal
-      data.holdout_batch: ["s4d1", "s4d9"]
+      data.holdout_batch: ["s4d1", "s4d8", "s4d9"]
       +augmentation: base
       model.integrate: add, concat, clip
-      model.predict_only_rna: False, True
+      model.predict_only_rna: False
       model.predict_projection: False, True 
       model.in_dim2: 134
       logging.project: architecture-ablation_vol0

@@ -100,6 +100,27 @@ class MoCo(pl.LightningModule):
                 return z0
             else:
                 return self(x) if self.predict_projection else self.backbone(x)
+    
+    def predict_separate(self, x):
+        with torch.no_grad():
+            if self.multimodal:
+                if self.predict_projection:
+                    z1_0, z1_1 = self(x)  
+                else:
+                    z1_0, z1_1 = self.backbone(x[0]), self.backbone2(x[1])
+
+                if self.predict_only_rna:
+                    raise Exception("Invalid path")
+
+                if self.integrate == "add":
+                    z0 = z1_0 + z1_1
+                elif self.integrate == "mean":
+                    z0 = (z1_0 + z1_1) / 2
+                else:
+                    z0 = torch.cat((z1_0, z1_1), 1)
+                return z0, z1_0, z1_1
+            else:
+                raise Exception("Invalid path")
 
     def forward_momentum(self, x):
         if self.multimodal:

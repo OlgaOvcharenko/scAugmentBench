@@ -195,6 +195,42 @@ class Concerto(pl.LightningModule):
                 if self.predict_projection:
                     z = self.projection_head_teacher(z)
                 return z
+
+    def predict_separate(self, x):
+        with torch.no_grad():
+            if self.multimodal:
+                x0, x1 = x[0], x[1]
+                x0 = self.bn1(x0)
+                torch.nn.functional.relu_(x0)
+                x0 = self.embedding_layer(x0.long())
+                x0, a = self.attention(x0)
+                x0 = torch.tanh(torch.sum(x0, axis=1))
+                z0 = self.bn2(x0)
+                if self.predict_projection:
+                    z0 = self.projection_head_teacher(z0)
+
+                x1 = self.bn1_2(x1)
+                torch.nn.functional.relu_(x1)
+                x1 = self.embedding_layer2(x1.long())
+                x1, a1 = self.attention2(x1)
+                x1 = torch.tanh(torch.sum(x1, axis=1))
+                z1 = self.bn2_2(x1)
+                if self.predict_projection:
+                    z1 = self.projection_head_teacher2(z1)
+
+                # Only RNA embedding
+                if self.predict_only_rna:
+                    raise Exception("Invalid path")
+
+                if self.integrate == "add":
+                    z = z0 + z1
+                elif self.integrate == "mean":
+                    z = (z0 + z1) / 2
+                else:
+                    z = torch.cat((z0, z1), 1)
+                return z, z0, z1
+            else:
+                raise Exception("Invalid path")
     
     def training_step(self, batch, batch_index):
         if self.multimodal:

@@ -3,14 +3,13 @@ hydra:
   sweeper:
     params:
       random_seed: range(20, 21)
-      +model: simclr
+      +model: simclr, moco, simsiam, vicreg, nnclr, byol, barlowtwins
       +data: pbmc_multimodal
       +augmentation: clear_pipeline
-      model.integrate: clip
+      model.integrate: add, concat, clip
       model.predict_only_rna: False
-      model.predict_projection: False
-      data.holdout_batch: ["P5", "P8"]
-      model.training.max_epochs: 0
+      model.predict_projection: False, True
+      data.holdout_batch: ["P3", "P5", "P8"]
       logging.project: architecture-ablation_vol0
   job:
     name: ${random_seed}  # Set the job name to the model name
