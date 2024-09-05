@@ -3,7 +3,7 @@ nohup python main.py --multirun +experiment=multimodal_PBMC_bknn_augmentation_ab
 # nohup python main.py --multirun +experiment=multimodal_PBMC_base_ablation_qr +cluster=slurm >> night3.log 2>&1 &
 # nohup python main.py --multirun +experiment=multimodal_PBMC_bknn_augmentation_ablation_qr +cluster=slurm >> night4.log 2>&1 &
 
-# nohup python main.py --multirun +experiment=multimodal_Neurips_base_ablation +cluster=slurm >> night5.log 2>&1 &
-# nohup python main.py --multirun +experiment=multimodal_Neurips_bknn_augmentation_ablation +cluster=slurm >> night6.log 2>&1 &
+nohup python main.py --multirun +experiment=multimodal_Neurips_base_ablation +cluster=slurm >> night5.log 2>&1 &
+nohup python main.py --multirun +experiment=multimodal_Neurips_bknn_augmentation_ablation +cluster=slurm >> night6.log 2>&1 &
 # nohup python main.py --multirun +experiment=multimodal_Neurips_base_ablation_qr +cluster=slurm >> night7.log 2>&1 &
 # nohup python main.py --multirun +experiment=multimodal_Neurips_bknn_augmentation_ablation_qr +cluster=slurm >> night8.log 2>&1 &

@@ -50,7 +50,7 @@ class OurMultimodalDataset(Dataset):
         
         if new_protein is not None:
             print("New protein")
-            self.adata[:, ix == False] = new_protein
+            self.adata.X[:, ix == False] = new_protein
 
         self.adata1 = adata[:, ix]
         self.adata2 = adata[:, ix == False]

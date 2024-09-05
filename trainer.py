@@ -190,40 +190,62 @@ def predict_protein_multimodal(encoder, train_adata, val_adata, batch_size=256, 
 
     start = time.time()
     train_X, train_rna, _ = infer_embedding_separate(encoder, train_loader)
-    _, val_rna, _ = infer_embedding_separate(encoder, val_loader)
+    val_X, val_rna, _ = infer_embedding_separate(encoder, val_loader)
 
-    # self.adata2.X
-
-    # TODO predict actual protein and measure Pearson correlation
-    nbrs = NearestNeighbors(metric='cosine', n_neighbors=5, algorithm='auto').fit(train_rna)
-    indices = nbrs.kneighbors(val_rna, return_distance=False)
-
-    val_new_protein = []
-    for i, ix in enumerate(indices):
-        pred_protein = np.array(train_dataset.adata2.X[ix, :].mean(axis=0)[0])
-        true_protein = np.array(val_dataset.adata2.X[i, :])
-
-        print(pred_protein.__class__)
-        print(true_protein.__class__)
-        
-
-        pearson = np.corrcoef(pred_protein, true_protein)[0, 1]
-        val_new_protein.append(pred_protein)
-
-        print(pearson)
-        exit()
-
-    # Infer embedding with predicted protein
-
+    # Query-to-reference
     train_y = train_adata.obs[ctype_key]
     val_y = val_adata.obs[ctype_key]
     
     clf = KNeighborsClassifier(n_neighbors=11)
-    clf = clf.fit(train_X, train_y)
-    run_time = time.time() - start
+    # clf = clf.fit(train_X, train_y)
+    # run_time = time.time() - start
     
-    y_pred = clf.predict(val_X)
+    # y_pred = clf.predict(val_X)
     
-    maavg_f1 = f1_score(val_y, y_pred, average='macro')
-    accuracy = accuracy_score(val_y, y_pred)
-    return clf, maavg_f1, accuracy, run_time
+    # maavg_f1 = f1_score(val_y, y_pred, average='macro')
+    # accuracy = accuracy_score(val_y, y_pred)
+
+    # Predict protein and measure Pearson correlation
+    start2 = time.time()
+
+    nbrs = NearestNeighbors(metric='cosine', n_neighbors=5, algorithm='auto').fit(train_rna)
+    indices = nbrs.kneighbors(val_rna, return_distance=False)
+
+    val_new_protein, pearsons = [], []
+    for i, ix in enumerate(indices):
+        pred_protein = train_dataset.adata2.X[ix, :].mean(axis=0)[0]
+        true_protein = val_dataset.adata2.X[i, :].to_dense()[0]
+
+        print(pred_protein.shape)
+        print(true_protein.shape)
+
+        print(pred_protein.__class__)
+        print(true_protein.__class__)
+
+        
+
+        pearson = np.corrcoef(pred_protein, true_protein)[0, 1]
+        
+        val_new_protein.append(pred_protein)
+        pearsons.append(pearson)
+
+        print(pearson)
+        exit()
+
+    # Query-to-reference for with predicted protein
+    val_new_loader = torch.utils.data.DataLoader(
+        dataset=OurMultimodalDataset(adata=val_adata, transforms=None, valid_ids=None, new_protein=np.array(val_new_protein)),
+        batch_size=batch_size, 
+        num_workers=num_workers,
+        shuffle=False, 
+        drop_last=False
+    )
+    
+    val_new_X = infer_embedding(encoder, val_new_loader)
+    run_time2 = time.time() - start2
+    
+    y_pred2 = clf.predict(val_new_X)
+    
+    maavg_f1_2 = f1_score(val_y, y_pred2, average='macro')
+    accuracy2 = accuracy_score(val_y, y_pred2)
+    return (clf, maavg_f1, accuracy, run_time), (maavg_f1_2, accuracy2, np.mean(pearsons), np.min(pearsons), np.max(pearsons), run_time2)
