@@ -92,7 +92,7 @@ def load_data_multimodal(config) -> sc.AnnData:
 
     elif config['augmentation']['mnn']['apply_prob'] > 0:
         _LOGGER.info("Preprocessing with mnn.")
-        pm = ClaireAugment(data_path, select_hvg=config["data"]["n_hvgs"], scale=False, knn=augmentation_config['mnn']['knn'],
+        pm = ClaireAugment(data_path, select_hvg=None, scale=False, knn=augmentation_config['mnn']['knn'],
                      exclude_fn=False, filtering=True, preprocess=False, multimodal=True, holdout_batch=config["data"]["holdout_batch"]
                      )
         augmentation_list1 = get_augmentation_list(augmentation_config, X=pm.adata.X[:, pm.adata.var["modality"] == 'RNA'], nns=pm.nns, mnn_dict=pm.mnn_dict)

@@ -8,7 +8,7 @@ hydra:
       +augmentation: our_pipeline
       model.integrate: add, concat, clip
       model.predict_only_rna: False
-      model.predict_projection: False, True
+      model.predict_projection: False
       data.holdout_batch: ["P3", "P5", "P8"]
       logging.project: architecture-ablation_vol4
       model.hidden_dim: 64

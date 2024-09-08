@@ -192,19 +192,19 @@ class ClaireAugment(PreProcessingModule):
     def store_mnn_dict(self):
         # Call this after computing the anchors or after filtering.
         if self.exclude_fn:
-            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-exclude_fn.json')
+            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}-exclude_fn.json')
         else:
-            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}.json')
+            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}.json')
         with open(path, 'w') as f:
             json.dump(self.mnn_dict, f)
     
     def load_anchors(self):
         if self.exclude_fn:
-            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-exclude_fn.json')
+            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}-exclude_fn.json')
         else:
-            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}.json')
+            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}.json')
         if os.path.exists(path):
-            with open(os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}.json'), 'r') as f:
+            with open(os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}.json'), 'r') as f:
                 try:
                     self.mnn_dict = json.load(f)
                     self.mnn_dict = {int(k): self.mnn_dict[k] for k in self.mnn_dict.keys()}
@@ -283,8 +283,8 @@ class ClaireAugment(PreProcessingModule):
         self.nns = dct
     
     def load_knn_graph(self):
-        if os.path.exists(os.path.join(self.data_dir, f'knn-{self.knn}-{self.select_hvg}.json')):
-            with open(os.path.join(self.data_dir, f'knn-{self.knn}-{self.select_hvg}.json'), 'r') as f:
+        if os.path.exists(os.path.join(self.data_dir, f'knn-{self.knn}-{self.select_hvg}-{str(self.holdout_batch)}.json')):
+            with open(os.path.join(self.data_dir, f'knn-{self.knn}-{self.select_hvg}-{str(self.holdout_batch)}.json'), 'r') as f:
                 try:
                     self.nns = json.load(f)
                     self.nns = {int(k): self.nns[k] for k in self.nns.keys()}

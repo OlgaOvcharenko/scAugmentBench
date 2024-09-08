@@ -10,7 +10,7 @@ hydra:
       model.integrate: add, concat, clip
       model.in_dim2: 134
       model.predict_only_rna: False
-      model.predict_projection: False, True
+      model.predict_projection: False
       logging.project: architecture-ablation_vol4
       model.hidden_dim: 64
   job:
