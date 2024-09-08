@@ -3,10 +3,9 @@ hydra:
   sweeper:
     params:
       random_seed: range(20, 25)
-      model.hidden_dim: choice(8, 16, 32, 64)
-      model.factor: choice(1, 2, 4)
+      model.hidden_dim: 64
       model.training.max_epochs: 200
-      +model: simclr
+      +model: barlowtwins, byol, moco, nnclr, byol, simclr, simsiam, vicreg
       +data: mouse
       +augmentation: clear_pipeline
       logging.project: architecture-ablation_vol1
