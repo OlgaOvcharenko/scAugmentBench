@@ -1,5 +1,6 @@
 __pycache__
 *-ablation*
+ablation-db-*
 lightning_logs
 *.csv
 *__pycache__*

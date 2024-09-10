@@ -609,6 +609,34 @@ def prepare_Neftel_ss2_10X(data_root):
 
     return X, gene_name, cell_name, df_meta
 
+
+def prepare_ImmuneAtlas(data_root):
+    '''
+      return:
+         X:         scipy.sparse.csr_matrix, row = feature, column = cell
+         gene_name: array of feature (gene) names
+         cell_name: array of cell (barcodes) names
+         df_meta:   metadata of dataset, columns include 'batchlb'(batch column), 'CellType'(optional)
+    '''
+    
+    adata = sc.read_h5ad(join(data_root, 'Conde.h5ad'))
+    #adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
+    
+    # Filtering out cy cycling cells (G2M). TODO: Do the S-Phase cells also need to be filtered out? If not: use .concatenate(adata[adata.obs['phase']=="S"])
+    #adata = adata[adata.obs['phase']=="G1"]
+
+    X = adata.raw.X.T
+
+    gene_name = adata.var_names.values
+    cell_name = adata.obs_names.values
+    df_meta = adata.obs[["donor_id", "cell_type", "assay",]].copy()
+
+    df_meta["batchlb"] = df_meta["assay"].astype('category')
+    df_meta["CellType"] = df_meta["cell_type"].astype('category')
+
+    return X, gene_name, cell_name, df_meta
+
+
 def prepare_HCLA_Core(data_root):
     '''
       return:
@@ -617,33 +645,20 @@ def prepare_HCLA_Core(data_root):
          cell_name: array of cell (barcodes) names
          df_meta:   metadata of dataset, columns include 'batchlb'(batch column), 'CellType'(optional)
     '''
-    # The adata object read below contains:
-    #   -   the sample (27 in total; one seems to be missing - there should
-    #       be 28 as the study had 28 participants) => adata.obs['sample']
-    #   -   the assigned cancer-subtype-label => 4 labels => adata.obs['celltype']
-    #   -   the subclones; I'm guessing it's the subclones as discovered by hierarchical clustering 
-    #   -   on the inferred CNAs => adata.obs['subclones']
-    #   -   the phase of the cell => adata.obs['phase']; there are also obs['G2M_score'] and obs['S_score'].
-
-    # Aditionally it contains the inferred CNV's (obsm['X_cnv'])
-    # The counts are located in the layers['counts'] object. TODO: how can we check if the data is normalized?
-    # The max value in the counts array is 488071. This seems a lot for a normalized matrix..
-
-    # There are 6855 cells in the dataset. In the original there were >17K, but the authors dropped the non-cancerous
-    # cells, leaving roughly 6.5K cells (this fits).
+    
     adata = sc.read_h5ad(join(data_root, 'Luecken_Core.h5ad'))
     #adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
     
     # Filtering out cy cycling cells (G2M). TODO: Do the S-Phase cells also need to be filtered out? If not: use .concatenate(adata[adata.obs['phase']=="S"])
     #adata = adata[adata.obs['phase']=="G1"]
 
-    X = adata.X.T
+    X = adata.raw.X.T
 
     gene_name = adata.var_names.values
     cell_name = adata.obs_names.values
     df_meta = adata.obs[["donor_id", "cell_type", "study"]].copy()
 
-    df_meta["batchlb"] = df_meta["donor_id"].astype('category')
+    df_meta["batchlb"] = df_meta["study"].astype('category')
     df_meta["CellType"] = df_meta["cell_type"].astype('category')
 
     return X, gene_name, cell_name, df_meta
@@ -783,6 +798,7 @@ def prepare_dataset(data_dir):
                     'MouseRetina': prepare_MouseRetina, 
                     'Lung': prepare_Lung,
                     'ImmHuman': prepare_ImmHuman,
+                    'ImmuneAtlas': prepare_ImmuneAtlas,
                     'Muris': prepare_Muris,
                     'Neocortex': prepare_Neo,
                     'Muris_2000': prepare_Muris_2000,

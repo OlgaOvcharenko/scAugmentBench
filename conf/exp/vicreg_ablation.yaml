@@ -15,4 +15,4 @@ hydra:
     name: ${random_seed}
   sweep:
     dir: ablation-db-2/architecture-ablation/
-    subdir: ${data.dname}/${model.hidden_dim}/${model.factor}/${model.reg_lambda}/${random_seed}
+    subdir: ${data.dname}/${model.model}/${model.hidden_dim}/${model.factor}/${model.reg_lambda}/${random_seed}

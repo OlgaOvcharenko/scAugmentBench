@@ -71,7 +71,7 @@ def load_data(config) -> sc.AnnData:
                             )
     _LOGGER.info("Finished loading data.....")
     
-    return train_dataset, val_dataset, pm.adata
+    return train_dataset, val_dataset, pm.adata, pm
 
 
 def reset_random_seeds(seed):
@@ -117,9 +117,14 @@ def main(cfg: DictConfig):
     """
     The check below makes sure that we don't have to train models multiple times given a config file.
     """
-    if os.path.exists(results_dir.joinpath("embedding.npz")):
+    if os.path.exists(results_dir.joinpath("embedding.npz")) or os.path.exists(results_dir.joinpath("clf.pkl")):
         _LOGGER.info(f"Embedding at {results_dir} already exists.")
         return
+    
+    name = cfg['augmentation']['name']
+    if name is not None:
+        print(name)
+        cfg['augmentation'][name]["apply_prob"] = 0.5
     
     random_seed = cfg["random_seed"]
     if torch.cuda.is_available():
@@ -127,7 +132,7 @@ def main(cfg: DictConfig):
         _LOGGER.info(f"Successfully reset seeds.")
         print(cfg)
 
-    train_dataset, val_dataset, ad = load_data(cfg)
+    train_dataset, val_dataset, ad, pm = load_data(cfg)
 
     _LOGGER.info(f"Start training ({cfg['model']['model']})")
     _LOGGER.info(f"CUDA available: {torch.cuda.is_available()}")
@@ -167,8 +172,8 @@ def main(cfg: DictConfig):
         _LOGGER.info("Running QR-Mapper-Inference.")
         _LOGGER.info(f"Results of QR-Mapper will be saved in {results_dir}")
         # load total adata, and get holdout-subset as Val_X and Y for clf-training
-        pm = PreProcessingModule(cfg["data"]["data_path"], select_hvg=cfg["data"]["n_hvgs"], 
-                                 scale=False, holdout_batch=None)
+        """pm = PreProcessingModule(cfg["data"]["data_path"], select_hvg=cfg["data"]["n_hvgs"], 
+                                 scale=False, holdout_batch=None)"""
         if type(cfg["data"]["holdout_batch"]) == str:
             fltr = pm.adata.obs['batchlb']==cfg["data"]["holdout_batch"]
         else:

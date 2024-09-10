@@ -5,12 +5,13 @@ hydra:
       random_seed: range(20, 25)
       model.hidden_dim: 64
       model.training.max_epochs: 200
-      +model: barlowtwins, byol, moco, nnclr, byol, simclr, simsiam, vicreg
-      +data: mouse
+      +model: barlowtwins, byol, moco, nnclr, simclr, simsiam, vicreg
+      +data: immune_atlas
+      data.holdout_batch: ["10x 5' v2"]
       +augmentation: clear_pipeline
       logging.project: architecture-ablation_vol1
   job:
     name: ${random_seed}
   sweep:
-    dir: ablation-db-2/architecture-ablation/
-    subdir: ${data.dname}/${model.model}/${model.hidden_dim}/${model.factor}/${random_seed}
+    dir: ablation-db-2/qr-mapper/
+    subdir: ${data.dname}/${model.model}/${random_seed}

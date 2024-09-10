@@ -4,7 +4,7 @@ defaults:
 model: NNCLR
 hidden_dim: 64
 factor: 1
-memory_bank_size: 4096
+memory_bank_size: 2048
 
 training:
   max_epochs: 200
