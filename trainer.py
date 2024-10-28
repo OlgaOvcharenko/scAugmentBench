@@ -18,12 +18,12 @@ from models.simsiam_refactor import SimSiam
 from models.nnclr_refactor import NNCLR
 from models.concerto import Concerto
 #from models.dino import *
-from evaluator import infer_embedding
+from evaluator import infer_embedding, infer_embedding_separate
 from anndata.experimental.pytorch import AnnLoader
-from data.dataset import OurDataset
+from data.dataset import OurDataset, OurMultimodalDataset
 
 from sklearn.metrics import f1_score, accuracy_score
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier, NearestNeighbors
 import os
 
 _model_dict = {"BYOL": BYOL, "BarlowTwins": BarlowTwins, "MoCo": MoCo, "VICReg": VICReg, "SimCLR": SimCLR, "SimSiam": SimSiam, "NNCLR": NNCLR, "Concerto": Concerto}
@@ -77,9 +77,9 @@ def train_model(dataset, model_config, random_seed, batch_size,
             drop_last=True)
     
     logger.info(f".. Dataloader ready. Now build {model_name}")
-
     model = _model_dict[str(model_name)](**model_config)
     
+    print(n_epochs)
     print(model_config)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -138,3 +138,112 @@ def train_clf(encoder, train_adata, val_adata, batch_size=256, num_workers=12, c
     maavg_f1 = f1_score(val_y, y_pred, average='macro')
     accuracy = accuracy_score(val_y, y_pred)
     return clf, maavg_f1, accuracy, run_time
+
+def train_clf_multimodal(encoder, train_adata, val_adata, batch_size=256, num_workers=12, ctype_key='CellType'):
+    train_loader = torch.utils.data.DataLoader(
+        dataset=OurMultimodalDataset(adata=train_adata, transforms=None, valid_ids=None),
+        batch_size=batch_size, 
+        num_workers=num_workers,
+        shuffle=False, 
+        drop_last=False
+    )
+    val_loader = torch.utils.data.DataLoader(
+        dataset=OurMultimodalDataset(adata=val_adata, transforms=None, valid_ids=None),
+        batch_size=batch_size, 
+        num_workers=num_workers,
+        shuffle=False, 
+        drop_last=False
+    )
+
+    start = time.time()
+    train_X, val_X = infer_embedding(encoder, train_loader), infer_embedding(encoder, val_loader)
+    train_y = train_adata.obs[ctype_key]
+    val_y = val_adata.obs[ctype_key]
+    
+    clf = KNeighborsClassifier(n_neighbors=11)
+    clf = clf.fit(train_X, train_y)
+    run_time = time.time() - start
+    
+    y_pred = clf.predict(val_X)
+    
+    maavg_f1 = f1_score(val_y, y_pred, average='macro')
+    accuracy = accuracy_score(val_y, y_pred)
+    return clf, maavg_f1, accuracy, run_time
+
+def predict_protein_multimodal(encoder, train_adata, val_adata, batch_size=256, num_workers=12, ctype_key='CellType'):
+    train_dataset = OurMultimodalDataset(adata=train_adata, transforms=None, valid_ids=None)
+    train_loader = torch.utils.data.DataLoader(
+        dataset=train_dataset,
+        batch_size=batch_size, 
+        num_workers=num_workers,
+        shuffle=False, 
+        drop_last=False
+    )
+    val_dataset = OurMultimodalDataset(adata=val_adata, transforms=None, valid_ids=None)
+    val_loader = torch.utils.data.DataLoader(
+        dataset=val_dataset,
+        batch_size=batch_size, 
+        num_workers=num_workers,
+        shuffle=False, 
+        drop_last=False
+    )
+
+    start = time.time()
+    train_X, train_rna, _ = infer_embedding_separate(encoder, train_loader)
+    val_X, val_rna, _ = infer_embedding_separate(encoder, val_loader)
+
+    # Query-to-reference
+    train_y = train_adata.obs[ctype_key]
+    val_y = val_adata.obs[ctype_key]
+    
+    clf = KNeighborsClassifier(n_neighbors=11)
+    clf = clf.fit(train_X, train_y)
+    run_time = time.time() - start
+    
+    y_pred = clf.predict(val_X)
+    
+    maavg_f1 = f1_score(val_y, y_pred, average='macro')
+    accuracy = accuracy_score(val_y, y_pred)
+
+    # TODO Query-to-reference only RNA
+    start3 = time.time()
+    clf_rna = KNeighborsClassifier(n_neighbors=11)
+    clf_rna = clf_rna.fit(train_rna, train_y)
+    run_time3 = time.time() - start3
+    
+    y_pred_rna = clf_rna.predict(val_rna)
+    
+    maavg_f1_rna = f1_score(val_y, y_pred_rna, average='macro')
+    accuracy_rna = accuracy_score(val_y, y_pred_rna)
+
+    # Predict protein and measure Pearson correlation
+    start2 = time.time()
+
+    nbrs = NearestNeighbors(metric='cosine', n_neighbors=5, algorithm='auto').fit(train_rna)
+    indices = nbrs.kneighbors(val_rna, return_distance=False)
+    
+    val_new_protein = np.array(train_dataset.adata2.X.todense())[indices].mean(axis=1)
+    tmp = val_dataset.adata2.X.todense()
+
+    pearsons = []
+    for true_protein, pred_protein in zip(tmp, val_new_protein):
+        t1 = time.time()
+        pearsons.append(np.corrcoef(pred_protein, true_protein)[0, 1])
+
+    # Query-to-reference for with predicted protein
+    val_new_loader = torch.utils.data.DataLoader(
+        dataset=OurMultimodalDataset(adata=val_adata, transforms=None, valid_ids=None, new_protein=np.array(val_new_protein)),
+        batch_size=batch_size, 
+        num_workers=num_workers,
+        shuffle=False, 
+        drop_last=False
+    )
+    
+    val_new_X = infer_embedding(encoder, val_new_loader)
+    run_time2 = time.time() - start2
+    
+    y_pred2 = clf.predict(val_new_X)
+    
+    maavg_f1_2 = f1_score(val_y, y_pred2, average='macro')
+    accuracy2 = accuracy_score(val_y, y_pred2)
+    return (clf, maavg_f1, accuracy, run_time), (maavg_f1_2, accuracy2, np.mean(pearsons), np.min(pearsons), np.max(pearsons), run_time2), (clf_rna, maavg_f1_rna, accuracy_rna, run_time3)

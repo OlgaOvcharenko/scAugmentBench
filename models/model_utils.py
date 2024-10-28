@@ -35,3 +35,24 @@ def get_backbone_deep(in_dim: int, encoder_out_dim: int, dropout:float=0, **kwar
         nn.Dropout(p=dropout),
     ]
     return nn.Sequential(*modules)
+
+def clip_loss(image_features, text_features, logit_scale, loss_img, loss_txt):
+    # normalized features
+    image_features = image_features / image_features.norm(dim=1, keepdim=True)
+    text_features = text_features / text_features.norm(dim=1, keepdim=True)
+
+    # cosine similarity as logits
+    logits_per_image = logit_scale * image_features @ text_features.t()
+    logits_per_text = logits_per_image.t()
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    ground_truth = torch.arange(len(image_features), dtype=torch.long, device=device)
+    total_loss = (loss_img(logits_per_image, ground_truth) + loss_txt(logits_per_text, ground_truth))/2
+
+    return total_loss
+
+def cross_entropy(preds, targets):
+    log_softmax = nn.LogSoftmax(dim=-1)
+    loss = (-targets * log_softmax(preds)).sum(1)
+    return loss
+    

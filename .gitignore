@@ -3,6 +3,14 @@ __pycache__
 ablation-db-*
 lightning_logs
 *.csv
+
+actual_data
+.DS_Store
+moco/__pycache__
+data/__pycache__
+models/__pycache__
+utils/__pycache__
+
 *__pycache__*
 */__pycache__
 figures
@@ -13,4 +21,5 @@ exp copy
 Figure_1.png
 
 tables
+results
 actual_data/

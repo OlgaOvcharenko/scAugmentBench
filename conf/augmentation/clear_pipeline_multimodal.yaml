@@ -1,8 +1,8 @@
 mnn:
   alpha: 0.5
-  apply_prob: 0.5
+  apply_prob: 0
+  augment_set: ['int','exc']
   knn: 3
-  augment_set: ['int']
   nsize: 1
 
 bbknn:
@@ -14,17 +14,17 @@ bbknn:
 
 gauss:
   sigma: 0.2
-  noise_percentage: 0.3
+  noise_percentage: 0.8
   apply_prob: 0.5
 
 mask:
-  mask_percentage: 0.5
+  mask_percentage: 0.2
   apply_prob: 0.5
 
 innerswap:
-  swap_percentage: 0.3
+  swap_percentage: 0.1
   apply_prob: 0.5
 
 crossover:
   cross_percentage: 0.25
-  apply_prob: 0
+  apply_prob: 0.5

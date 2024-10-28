@@ -9,6 +9,8 @@ import json
 import dbm
 import omegaconf
 
+import omegaconf
+
 import scipy.sparse as sps
 from itertools import product
 from collections import defaultdict
@@ -32,11 +34,15 @@ class PreProcessingModule():
             data_dir,
             select_hvg=True,
             scale=False,
+            preprocess=True,
+            multimodal=False,
             holdout_batch=None
         ):
         self.scale = scale
         self.data_dir = data_dir  # data_root/dataset_name
         self.select_hvg = select_hvg
+        self.preprocess = preprocess
+        self.multimodal = multimodal
         self.holdout_batch = holdout_batch
         self.load_data()
     
@@ -45,7 +51,9 @@ class PreProcessingModule():
         sps_x, genes, cells, metadata = prepare_dataset(self.data_dir)
         if type(metadata) == list and len(metadata) == 3:
             metadata, X_cnv, cnv_mapping = metadata
-        
+        elif type(metadata) == list and len(metadata) == 2 and self.multimodal:
+            metadata, modality = metadata
+
         if type(self.holdout_batch) == str:
             fltr = list(metadata[configs.batch_key] != self.holdout_batch)
             sps_x, cells, metadata = sps_x[:, fltr], cells[fltr], metadata[fltr]
@@ -60,8 +68,9 @@ class PreProcessingModule():
             metadata,
             self.select_hvg,
             self.scale,
-            )
-
+            self.preprocess
+        )
+        
         self.X = X   # sparse
         self.metadata = metadata
         self.gname = gene_name
@@ -73,6 +82,9 @@ class PreProcessingModule():
         self.adata.obs = metadata.copy()
         self.adata.uns = adata.uns
         self.adata.var = adata.var
+
+        if self.multimodal:
+            self.adata.var["modality"] = modality
         
         self.n_sample = self.X.shape[0]
         self.n_feature = self.X.shape[1]
@@ -114,10 +126,13 @@ class ClaireAugment(PreProcessingModule):
             knn = 10, # defines number of neighbors to compute
             exclude_fn=True,
             k_anchor=5,
-            filtering=True,
+            filtering=True, 
+            preprocess=True,
+            multimodal=False,
             **kwargs,
         ):
-        super().__init__(data_dir, select_hvg, scale, **kwargs)
+        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal, **kwargs)
+
         self.k_anchor = k_anchor
         self.knn = knn
         self.exclude_fn = exclude_fn
@@ -177,19 +192,19 @@ class ClaireAugment(PreProcessingModule):
     def store_mnn_dict(self):
         # Call this after computing the anchors or after filtering.
         if self.exclude_fn:
-            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-exclude_fn.json')
+            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}-exclude_fn.json')
         else:
-            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}.json')
+            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}.json')
         with open(path, 'w') as f:
             json.dump(self.mnn_dict, f)
     
     def load_anchors(self):
         if self.exclude_fn:
-            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-exclude_fn.json')
+            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}-exclude_fn.json')
         else:
-            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}.json')
+            path = os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}.json')
         if os.path.exists(path):
-            with open(os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}.json'), 'r') as f:
+            with open(os.path.join(self.data_dir, f'anchors-{self.k_anchor}-{self.select_hvg}-{str(self.holdout_batch)}.json'), 'r') as f:
                 try:
                     self.mnn_dict = json.load(f)
                     self.mnn_dict = {int(k): self.mnn_dict[k] for k in self.mnn_dict.keys()}
@@ -268,8 +283,8 @@ class ClaireAugment(PreProcessingModule):
         self.nns = dct
     
     def load_knn_graph(self):
-        if os.path.exists(os.path.join(self.data_dir, f'knn-{self.knn}-{self.select_hvg}.json')):
-            with open(os.path.join(self.data_dir, f'knn-{self.knn}-{self.select_hvg}.json'), 'r') as f:
+        if os.path.exists(os.path.join(self.data_dir, f'knn-{self.knn}-{self.select_hvg}-{str(self.holdout_batch)}.json')):
+            with open(os.path.join(self.data_dir, f'knn-{self.knn}-{self.select_hvg}-{str(self.holdout_batch)}.json'), 'r') as f:
                 try:
                     self.nns = json.load(f)
                     self.nns = {int(k): self.nns[k] for k in self.nns.keys()}
@@ -322,10 +337,12 @@ class BbknnAugment(PreProcessingModule):
             scale=False, 
             knn = 10, # defines number of neighbors to compute
             exclude_fn=False,
-            trim_val=None,
+            trim_val=None, 
+            preprocess=True,
+            multimodal=False,
             **kwargs,
         ):
-        super().__init__(data_dir, select_hvg, scale, **kwargs)
+        super().__init__(data_dir, select_hvg, scale, preprocess, multimodal, **kwargs,)
         self.knn = knn
         self.exclude_fn = exclude_fn
         self.trim = trim_val

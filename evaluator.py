@@ -5,7 +5,7 @@ import pandas as pd
 from scib_metrics.benchmark import Benchmarker, BioConservation, BatchCorrection
 import scanpy as sc
 from sklearn.preprocessing import MinMaxScaler
-
+import matplotlib.pyplot as plt
 
 
 _BIO_METRICS = BioConservation(isolated_labels=True, 
@@ -31,6 +31,24 @@ def infer_embedding(model, val_loader):
     embedding = np.array(embedding)
     return embedding
 
+def infer_embedding_separate(model, val_loader):
+    outs, rnas, proteins = [], [], []
+    for x in val_loader:
+        with torch.no_grad():
+            out, rna, protein = model.predict_separate(x[0])
+            outs.append(out)
+            rnas.append(rna)
+            proteins.append(protein)
+    
+    embedding = torch.concat(outs)
+    embedding = np.array(embedding)
+
+    embedding_rna = torch.concat(rnas)
+    embedding_rna = np.array(embedding_rna)
+
+    embedding_protein = torch.concat(proteins)
+    embedding_protein = np.array(embedding_protein)
+    return embedding, embedding_rna, embedding_protein
 
 def infer_projector_embedding(model, val_loader):
     outs = []
@@ -44,7 +62,7 @@ def infer_projector_embedding(model, val_loader):
 
 
 def evaluate_model(model, adata, dataset, batch_size, num_workers, logger, embedding_save_path,
-                   batch_key="batchlb", cell_type_label="CellType",):
+                   batch_key="batchlb", cell_type_label="CellType", umap_plot=""):
     val_loader = torch.utils.data.DataLoader(
                     dataset,
                     batch_size=batch_size,
@@ -56,6 +74,11 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers, logger, embed
 
     logger.info(f"Inferred embedding of shape {embedding.shape}")
     adata.obsm["Embedding"] = embedding
+
+    sc.pp.neighbors(adata, use_rep="Embedding", metric="cosine")
+    sc.tl.umap(adata, min_dist=0.1)
+    sc.pl.umap(adata, color=["CellType", "batch"], legend_fontweight='light') 
+    plt.savefig(umap_plot)
     try:
         bm = Benchmarker(
                     adata,
@@ -74,7 +97,6 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers, logger, embed
         logger.info(".. An exception occured while evaluating:", error)
 
     return results, embedding
-
 
 def recalculate_results(adata, embedding, num_workers,
                    batch_key="batchlb", cell_type_label="CellType",):

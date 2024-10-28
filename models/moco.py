@@ -15,21 +15,20 @@ from utils.train_utils import *
 from models.model_utils import get_backbone, get_backbone_deep, clip_loss
 
 import lightning as pl
-import numpy as np
+
 
 class MoCo(pl.LightningModule):
-    def __init__(self, in_dim, hidden_dim, factor, multimodal, out_dim, memory_bank_size, max_epochs=200, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
+    def __init__(self, in_dim, hidden_dim, multimodal, out_dim, memory_bank_size, max_epochs=200, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
 
         self.multimodal = multimodal
         self.max_epochs = max_epochs
         self.predict_projection = predict_projection
-        out_dim=hidden_dim//factor
         
         if self.multimodal:
             self.integrate = integrate
             self.predict_only_rna = only_rna
-            self.temperature = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+            self.temperature = 1.0 # nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = MoCoProjectionHead(hidden_dim, hidden_dim, out_dim)
@@ -49,11 +48,7 @@ class MoCo(pl.LightningModule):
             deactivate_requires_grad(self.backbone_momentum2)
             deactivate_requires_grad(self.projection_head_momentum2)
 
-            if self.integrate == 'clip':
-                self.loss_img = nn.CrossEntropyLoss()
-                self.loss_txt = nn.CrossEntropyLoss()
-            else:
-                self.criterion = NTXentLoss(memory_bank_size=(memory_bank_size, out_dim))
+            self.criterion = NTXentLoss(memory_bank_size=(memory_bank_size, out_dim))
         
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
@@ -83,10 +78,7 @@ class MoCo(pl.LightningModule):
     def predict(self, x):
         with torch.no_grad():
             if self.multimodal:
-                if self.predict_projection:
-                    z1_0, z1_1 = self(x)  
-                else:
-                    z1_0, z1_1 = self.backbone(x[0]), self.backbone2(x[1])
+                z1_0, z1_1 = self(x) if self.predict_projection else self.backbone(x[0]), self.backbone2(x[1]) 
 
                 if self.predict_only_rna:
                     return z1_0
@@ -100,27 +92,6 @@ class MoCo(pl.LightningModule):
                 return z0
             else:
                 return self(x) if self.predict_projection else self.backbone(x)
-    
-    def predict_separate(self, x):
-        with torch.no_grad():
-            if self.multimodal:
-                if self.predict_projection:
-                    z1_0, z1_1 = self(x)  
-                else:
-                    z1_0, z1_1 = self.backbone(x[0]), self.backbone2(x[1])
-
-                if self.predict_only_rna:
-                    raise Exception("Invalid path")
-
-                if self.integrate == "add":
-                    z0 = z1_0 + z1_1
-                elif self.integrate == "mean":
-                    z0 = (z1_0 + z1_1) / 2
-                else:
-                    z0 = torch.cat((z1_0, z1_1), 1)
-                return z0, z1_0, z1_1
-            else:
-                raise Exception("Invalid path")
 
     def forward_momentum(self, x):
         if self.multimodal:
@@ -160,8 +131,7 @@ class MoCo(pl.LightningModule):
                 query = torch.cat((query_1, query_2), 1)
                 key = torch.cat((key_1, key_2), 1)
             elif self.integrate == "clip":
-                logit_scale = self.temperature.exp()
-                loss = clip_loss(query_1, query_2, logit_scale, self.loss_img, self.loss_txt) + clip_loss(key_1, key_2, logit_scale, self.loss_img, self.loss_txt)
+                loss = 0.5 * (clip_loss(query_1, query_2) + clip_loss(key_1, key_2))
                 return loss
 
             else:

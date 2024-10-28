@@ -11,9 +11,11 @@ import torch.nn as nn
 from torch import bernoulli, rand, normal # rand is the uniform distribution [0, 1) 
 
 
-def get_augmentation_list(config, X, nns=None, mnn_dict=None, input_shape=(1,4000)):
+def get_augmentation_list(config, X, nns=None, mnn_dict=None, input_shape=None):
     # TODO: Implement possibility for reordering of augmentations.
     print(input_shape)
+    if input_shape is None:
+        input_shape = (1, X.shape[1])
     if nns is None:
         return [Mask_Augment(input_shape=input_shape, **config['mask']), # in original CLEAR pipeline this comes first.
                 Gauss_Augment(input_shape=input_shape, **config['gauss']),
@@ -161,7 +163,7 @@ Crossing over with any cell, rather than similar ones. This is basically what mn
 """
 class CrossOver_Augment(nn.Module):
     
-    def __init__(self, X, cross_percentage: float=0.25, apply_prob: float=0.4,input_shape=(1, 4000)):
+    def __init__(self, X, cross_percentage: float=0.25, apply_prob: float=0.4,input_shape=(1, 2000)):
         super().__init__()
         self.apply_thresh = apply_prob
         self.cross_percentage = cross_percentage
@@ -195,7 +197,7 @@ class CrossOver_Augment(nn.Module):
 
 class InnerSwap_Augment(nn.Module):
     
-    def __init__(self, swap_percentage: float=0.1, apply_prob: float=0.5, input_shape=(1, 4000)):
+    def __init__(self, swap_percentage: float=0.1, apply_prob: float=0.5, input_shape=(1, 2000)):
         super().__init__()
         self.apply_thresh = apply_prob
         self.swap_percentage = swap_percentage
@@ -221,7 +223,7 @@ class InnerSwap_Augment(nn.Module):
 
 class Mask_Augment(nn.Module):
     
-    def __init__(self, mask_percentage: float = 0.15, apply_prob: float = 0.5, input_shape=(1, 4000)):
+    def __init__(self, mask_percentage: float = 0.15, apply_prob: float = 0.5, input_shape=(1, 2000)):
         super().__init__()
         self.apply_thresh=apply_prob
         self.mask_percentage=mask_percentage
