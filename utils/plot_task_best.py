@@ -1,5 +1,5 @@
 import pandas as pd 
-
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import minmax_scale
@@ -61,18 +61,32 @@ tmp = np.array([[x, y]for y, x in zip(rank_mp, methods)])
 methods_mp = list(tmp[:, 0])
 rank_mp = list(tmp[:, 1])
 
-# print(methods_bc, rank_bc)
-# print(methods_qr, rank_qr)
-# print(methods_mp, rank_mp)
 
 final_rates = np.array([rank_bc, rank_qr, rank_mp])
 final_rates = minmax_scale(final_rates, axis=1, )
-print(final_rates)
+print(methods)
+print(final_rates.round(4))
 
+rates_mean = final_rates.mean(axis=0)
+methods = np.array([[x, y] for y, x in sorted(zip(rates_mean, methods), reverse=True)]) [:, 0]
+final_rates = np.array([final_rates[:, y] for x, y in sorted(zip(rates_mean, range(final_rates.shape[1])), reverse=True)]).T
+print(methods)
+print(final_rates.round(4))
+
+methods_bc = list(tmp[:, 0])
+rank_bc = list(tmp[:, 1])
+
+
+
+min_val, max_val = 0.25, 1.0
+n = 1000
+orig_cmap = mpl.colormaps["Reds"].resampled(200)
+colors = orig_cmap(np.linspace(min_val, max_val, n))
+cmap = mpl.colors.LinearSegmentedColormap.from_list("mycmap", colors)
 
 # Plot
 fig, ax = plt.subplots(1, 1, figsize=(23/3.6, 4), dpi=500)
-im = ax.imshow(final_rates, cmap="coolwarm")
+im = ax.imshow(final_rates, cmap=cmap) # jet tab20
 
 ax.set_xticks(np.arange(len(methods)), labels=methods, fontsize=16,)
 ax.set_yticks(np.arange(3), labels=["Batch\nCorrection", "Query-to-Reference\nMapping", "Missing Modality\nPrediction"], fontsize=16)
@@ -84,7 +98,7 @@ plt.setp(ax.get_xticklabels(), rotation=-40, ha="right",
             rotation_mode="anchor", fontsize=16,)
 
 # Create colorbar
-cbar = ax.figure.colorbar(im, ax=ax, ticks=[0, 1],)
+cbar = ax.figure.colorbar(im, ax=ax, ticks=[0, 1])
 cbar.ax.set_ylabel("Scaled Score", rotation=-90, va="bottom", fontsize=16, labelpad=-10)
 cbar.ax.tick_params(labelsize=16)
 
@@ -95,5 +109,5 @@ ax.set_title("Methods Comparison", fontsize=20)
 ax.set_aspect(aspect=2)
 
 plt.subplots_adjust(left=0.41, right=0.99, top=0.62, bottom=0.08, wspace=0.02, hspace=0.7)
-plt.savefig("plots/table_comparison.pdf")
-plt.savefig("plots/table_comparison.svg")
+plt.savefig("plots/table_comparison_reds.pdf")
+plt.savefig("plots/table_comparison_reds.svg")
