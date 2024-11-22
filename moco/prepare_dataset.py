@@ -437,7 +437,7 @@ def prepare_PBMC_Multimodal(data_root):
     adata_RNA = sc.read_h5ad(join(data_root, 'adata_RNA_full.h5ad'))
     adata_Protein = sc.read_h5ad(join(data_root, 'adata_Protein_full.h5ad'))
 
-    train_idx = (adata_RNA.obs["batch"] != "P5") & (adata_RNA.obs["batch"] != "P8") & (adata_RNA.obs["cell_type"] != "B intermediate") & (adata_RNA.obs["cell_type"] != "B memory") & (adata_RNA.obs["cell_type"] != "B naive") & (adata_RNA.obs["cell_type"] != "Plasmablast")
+    train_idx = (adata_RNA.obs["batch"] != "P5") & (adata_RNA.obs["batch"] != "P8")
     # test_idx = (train_idx != 1)
 
     X_RNA = adata_RNA.X.A.T  # gene by cell

@@ -2,13 +2,13 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 25)
+      random_seed: range(20, 21)
       +model: simclr, moco, simsiam, vicreg, nnclr, byol, barlowtwins
       +data: neurips_cite_multimodal
       +augmentation: clear_pipeline
-      model.integrate: add, concat, clip
+      model.integrate: concat
       model.predict_only_rna: False
-      model.predict_projection: False, True
+      model.predict_projection: False
       model.in_dim2: 134
       logging.project: architecture-ablation_vol1
   job:
