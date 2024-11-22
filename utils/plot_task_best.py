@@ -106,7 +106,7 @@ for i in range(3):
 
 # Create colorbar
 cbar = ax.figure.colorbar(im, ax=ax, ticks=[0.0, 1.0])
-cbar.ax.set_ylabel("Scaled Score", rotation=-90, va="bottom", fontsize=16, labelpad=-10)
+cbar.ax.set_ylabel("Average Score", rotation=-90, va="bottom", fontsize=16, labelpad=-10)
 cbar.ax.tick_params(labelsize=16)
 
 ax.set_xlabel("Methods", fontsize=20, loc='center') 
