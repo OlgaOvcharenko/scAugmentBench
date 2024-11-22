@@ -71,7 +71,7 @@ handles, labels = axs[0].get_legend_handles_labels()
 
 labels[0] = "Bio Conservation"
 labels[1] = "Batch Correction"
-labels[2] = "Total = 0.6 * Bio + 0.4 Batch"
+labels[2] = "Total = 0.6 * Bio + 0.4 * Batch"
 plt.legend(handles, labels,
            loc="lower center",
            ncol=3,
@@ -81,3 +81,4 @@ plt.legend(handles, labels,
 
 plt.subplots_adjust(left=0.037, right=0.99, top=0.815, bottom=0.237, wspace=0.04)
 plt.savefig("plots/table1.svg")
+plt.savefig("plots/table1.pdf")
