@@ -1,3 +1,5 @@
+name: null
+
 mnn:
   alpha: 0.5
   apply_prob: 0
@@ -6,7 +8,7 @@ mnn:
   nsize: 1
 
 bbknn:
-  alpha: 0.5
+  alpha: 0.3
   apply_prob: 0
   knn: 5
   augment_set: ['exc']
@@ -14,17 +16,17 @@ bbknn:
 
 gauss:
   sigma: 0.2
-  noise_percentage: 0.8
-  apply_prob: 0.5
+  noise_percentage: 0.3
+  apply_prob: 0
 
 mask:
-  mask_percentage: 0.2
-  apply_prob: 0.5
+  mask_percentage: 0.5
+  apply_prob: 0
 
 innerswap:
-  swap_percentage: 0.1
-  apply_prob: 0.5
+  swap_percentage: 0.3
+  apply_prob: 0
 
 crossover:
   cross_percentage: 0.25
-  apply_prob: 0.5
+  apply_prob: 0

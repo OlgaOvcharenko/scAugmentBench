@@ -1,5 +1,6 @@
 __pycache__
 *-ablation*
+ablation-db-*
 lightning_logs
 *.csv
 
@@ -22,3 +23,9 @@ Figure_1.png
 tables
 results
 actual_data/
+
+plots_thesis/
+plotting_utils/
+plots/
+
+logs/

@@ -27,10 +27,10 @@ def get_augmentation_list(config, X, nns=None, mnn_dict=None, input_shape=None):
                 InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
                 Mask_Augment(input_shape=input_shape, **config['mask']),]
     else:
-        return [Gauss_Augment(input_shape=input_shape, **config['gauss']),
+        return [Bbknn_Augment(X=X, nns=nns, **config['bbknn']),
+                Gauss_Augment(input_shape=input_shape, **config['gauss']),
                 InnerSwap_Augment(input_shape=input_shape, **config['innerswap']),
                 CrossOver_Augment(X=X, input_shape=input_shape, **config['crossover']),
-                Bbknn_Augment(X=X, nns=nns, **config['bbknn']),
                 Mask_Augment(input_shape=input_shape,**config['mask']),]
 
 def get_transforms(transform_list):
@@ -100,10 +100,10 @@ class Mnn_Augment(nn.Module):
         return self.aug_fn(x_p, x_p_n)
 
     def forward(self, *input):
-        view_1, view_2, cell_ids = input[0]['x1'].squeeze(), input[0]['x2'].squeeze(), input[0]['cell_ids']
+        view_1, view_2, cell_ids = input[0]['x1'], input[0]['x2'], input[0]['cell_ids']
         
         s = rand(1)
-        if s <= self.apply_thresh:
+        if s < self.apply_thresh:
             view_1 = self.augment_intra(view_1, int(cell_ids))
 
             view_2 = self.augment_inter(view_2, int(cell_ids))
@@ -148,11 +148,11 @@ class Gauss_Augment(nn.Module):
         view_2 = view_2.cuda()"""
 
         s = rand(1)
-        if s<=self.apply_thresh:
+        if s<self.apply_thresh:
             #print("Apply Gauss 1")
             view_1 = self.augment(view_1)
         s = rand(1)
-        if s<=self.apply_thresh:
+        if s<self.apply_thresh:
             #print("Apply Gauss 2")
             view_2 = self.augment(view_2)
         return {'x1': view_1, 'x2': view_2, 'cell_ids': cell_ids}
@@ -187,10 +187,10 @@ class CrossOver_Augment(nn.Module):
         #print(input[0])
         view_1, view_2, cell_ids = input[0]['x1'], input[0]['x2'], input[0]['cell_ids']
         s = rand(1)
-        if s<=self.apply_thresh:
+        if s<self.apply_thresh:
             view_1 = self.augment(view_1)
         s = rand(1)
-        if s<=self.apply_thresh:
+        if s<self.apply_thresh:
             view_2 = self.augment(view_2)
         return {'x1': view_1, 'x2': view_2, 'cell_ids': cell_ids}
 
@@ -213,11 +213,11 @@ class InnerSwap_Augment(nn.Module):
     def forward(self, *input):
         view_1, view_2, cell_ids = input[0]['x1'], input[0]['x2'], input[0]['cell_ids']
         s = rand(1)
-        if s<=self.apply_thresh:
+        if s<self.apply_thresh:
             view_1 = self.augment(view_1)
         s = rand(1)
-        if s<=self.apply_thresh:
-            view_2 = self.augment(view_1)
+        if s<self.apply_thresh:
+            view_2 = self.augment(view_2)
         return {'x1': view_1, 'x2': view_2, 'cell_ids': cell_ids}
     
 
@@ -239,10 +239,10 @@ class Mask_Augment(nn.Module):
     def forward(self, *input):
         view_1, view_2, cell_ids = input[0]['x1'], input[0]['x2'], input[0]['cell_ids']
         s = rand(1)
-        if s<=self.apply_thresh:
+        if s<self.apply_thresh:
             view_1 = self.augment(view_1)
         s = rand(1)
-        if s<=self.apply_thresh:
+        if s<self.apply_thresh:
             view_2 = self.augment(view_2)
         return {'x1': view_1, 'x2': view_2, 'cell_ids': cell_ids}
 
@@ -283,11 +283,11 @@ class Bbknn_Augment(nn.Module):
         view_1, view_2, cell_ids = input[0]['x1'].squeeze(), input[0]['x2'].squeeze(), input[0]['cell_ids']
         
         s = rand(1)
-        if s <= self.apply_thresh:
+        if s < self.apply_thresh:
             view_1 = self.augment(view_1, int(cell_ids))
         s = rand(1)
-        if s <= self.apply_thresh:
+        if s < self.apply_thresh:
             view_2 = self.augment(view_2, int(cell_ids))
-
+        
         #return {'x1': view_1.unsqueeze(0), 'x2': view_2.unsqueeze(0), 'cell_ids': cell_ids}
         return {'x1': view_1, 'x2': view_2, 'cell_ids': cell_ids}

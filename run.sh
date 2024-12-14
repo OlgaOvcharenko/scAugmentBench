@@ -1,1 +1,4 @@
-nohup python main.py --multirun +experiment=multimodal_PBMC_our_ablation +cluster=slurm >> example.log 2>&1 &
+python main.py --multirun +aug_exp=combi-bbknn-all
+python main.py --multirun +aug_exp=combi-gauss-all
+python main.py --multirun +aug_exp=combi-mask-all
+python main.py --multirun +aug_exp=combi-swap-all

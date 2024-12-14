@@ -71,7 +71,7 @@ def load_data(config) -> sc.AnnData:
                             )
     _LOGGER.info("Finished loading data.....")
     
-    return train_dataset, val_dataset, pm.adata
+    return train_dataset, val_dataset, pm.adata, pm
 
 
 def load_data_multimodal(config) -> sc.AnnData:
@@ -166,9 +166,14 @@ def main(cfg: DictConfig):
     """
     The check below makes sure that we don't have to train models multiple times given a config file.
     """
-    if os.path.exists(results_dir.joinpath("embedding.npz")):
+    if os.path.exists(results_dir.joinpath("embedding.npz")) or os.path.exists(results_dir.joinpath("clf.pkl")):
         _LOGGER.info(f"Embedding at {results_dir} already exists.")
         return
+    
+    name = cfg['augmentation']['name']
+    if name is not None:
+        print(name)
+        cfg['augmentation'][name]["apply_prob"] = 0.5
     
     random_seed = cfg["random_seed"]
     if torch.cuda.is_available():
