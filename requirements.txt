@@ -4,7 +4,6 @@ aiohttp==3.9.3
 aiosignal==1.3.1
 anndata==0.10.5.post1
 annotated-types==0.6.0
-annoy @ file:///home/conda/feedstock_root/build_artifacts/python-annoy_1714640115560/work
 antlr-denter==1.3.1
 antlr4-python3-runtime==4.9.3
 anyio==4.2.0

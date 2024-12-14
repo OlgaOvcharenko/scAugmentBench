@@ -180,16 +180,21 @@ def predict_protein_multimodal(encoder, train_adata, val_adata, batch_size=256, 
         drop_last=False
     )
     val_dataset = OurMultimodalDataset(adata=val_adata, transforms=None, valid_ids=None)
+    print(f"Val encoder batch size {val_dataset}")
     val_loader = torch.utils.data.DataLoader(
         dataset=val_dataset,
-        batch_size=batch_size, 
+        batch_size=15, 
         num_workers=num_workers,
         shuffle=False, 
         drop_last=False
     )
 
     start = time.time()
+    print("Start extract train")
+    encoder.eval()
     train_X, train_rna, _ = infer_embedding_separate(encoder, train_loader)
+    print("Done extract train")
+    print("Start validation train")
     val_X, val_rna, _ = infer_embedding_separate(encoder, val_loader)
 
     # Query-to-reference

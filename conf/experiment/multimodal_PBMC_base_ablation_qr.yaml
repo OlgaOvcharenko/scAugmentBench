@@ -2,13 +2,13 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 25)
+      random_seed: range(20, 21)
       +model: simclr, moco, simsiam, vicreg, nnclr, byol, barlowtwins
       +data: pbmc_multimodal
       +augmentation: clear_pipeline
-      model.integrate: add, concat, clip
+      model.integrate: concat
       model.predict_only_rna: False
-      model.predict_projection: False, True
+      model.predict_projection: False
       data.holdout_batch: ["P3", "P5", "P8"]
       logging.project: architecture-ablation_vol2
       model.hidden_dim: 64
