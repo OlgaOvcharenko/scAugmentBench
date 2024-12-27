@@ -42,8 +42,8 @@ def compare_model_architectures(projection, combine, data):
                                 for k, v in row.items():
                                     df_list[i].loc[model, f'{d}_{c}_{p}_{k}'] = float(v)
     
-    for df in df_list:
-        print(df)
+    for i, df in enumerate(df_list):
+        df.to_csv(f"results/bc/new/bc_{i}.csv")
 
     exit()
 
@@ -220,7 +220,7 @@ def scale_result(df, projection, combine, data):
                 df[f"{d}_{c}_{p}_Total"] = scaled[f"{d}_{c}_{p}_Total"].copy()
     return df
 
-plot = 3
+plot = 2
 if plot == 1:   
     # Compare CLIP, Add, Concat for backbone  
     averages, stds = compare_model_architectures(projection = ['False'], combine=combine, data=['Neurips-Multiome'])
@@ -235,7 +235,7 @@ if plot == 1:
 
 elif plot == 2:
     # Compare Concat for backbone and projection
-    averages, stds = compare_model_architectures(projection = ['False', 'True'], combine=['concat'], data=data)
+    averages, stds = compare_model_architectures(projection = ['False'], combine=['concat'], data=data)
     dir_path = "results/bc/avg_compare_backbone_projection/"
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)

@@ -95,7 +95,7 @@ def compare_model_architectures_new(projection, combine, data):
     print(result)
     return result
 
-plot = 2
+plot = 1
 if plot == 1:   
     # Compare backbone concat for only RNA and both modalities 
     averages, stds = compare_model_architectures(projection = ['False'], combine=['concat'], data=['PBMC-Multiome', 'Neurips-Multiome'])
@@ -105,8 +105,10 @@ if plot == 1:
         print("Directory created successfully!")
     else:
         print("Directory already exists!")
-    averages.to_csv(f"{dir_path}avg.csv")
-    stds.to_csv(f"{dir_path}std.csv")
+    # averages.to_csv(f"{dir_path}avg.csv")
+    # stds.to_csv(f"{dir_path}std.csv")
+    averages.to_csv(f"results/qr/new/avg.csv")
+    stds.to_csv(f"results/qr/new/std.csv")
 
 elif plot == 2:   
     # Compare backbone concat for only RNA and both modalities 

@@ -66,3 +66,6 @@ if plot == 1:
     averages.to_csv(f"{dir_path}avg.csv")
     stds.to_csv(f"{dir_path}std.csv")
 
+    # averages.to_csv(f"results/mp/new/avg.csv")
+    # stds.to_csv(f"results/mp/new/std.csv")
+
