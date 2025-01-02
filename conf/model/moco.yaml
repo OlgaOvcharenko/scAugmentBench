@@ -5,6 +5,7 @@ model: MoCo
 factor: 1
 hidden_dim: 64
 memory_bank_size: 2048
+temperature: 0.5
 
 training:
   max_epochs: 200

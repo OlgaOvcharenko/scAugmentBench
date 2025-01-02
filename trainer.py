@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 import scanpy as sc
-import wandb
 import time
 
 import torch

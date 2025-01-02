@@ -4,6 +4,7 @@ defaults:
 model: SimCLR
 factor: 1
 hidden_dim: 64
+temperature: 0.5
 
 training:
   max_epochs: 200

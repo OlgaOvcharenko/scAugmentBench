@@ -18,7 +18,7 @@ import lightning as pl
 
 
 class MoCo(pl.LightningModule):
-    def __init__(self, in_dim, hidden_dim, multimodal, out_dim, memory_bank_size, max_epochs=200, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
+    def __init__(self, in_dim, hidden_dim, multimodal, out_dim, memory_bank_size, temperature, max_epochs=200, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
 
         self.multimodal = multimodal
@@ -48,7 +48,7 @@ class MoCo(pl.LightningModule):
             deactivate_requires_grad(self.backbone_momentum2)
             deactivate_requires_grad(self.projection_head_momentum2)
 
-            self.criterion = NTXentLoss(memory_bank_size=(memory_bank_size, out_dim))
+            self.criterion = NTXentLoss(temperature=temperature, memory_bank_size=(memory_bank_size, out_dim))
         
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
@@ -60,7 +60,7 @@ class MoCo(pl.LightningModule):
             deactivate_requires_grad(self.backbone_momentum)
             deactivate_requires_grad(self.projection_head_momentum)
 
-            self.criterion = NTXentLoss(memory_bank_size=(memory_bank_size, out_dim))
+            self.criterion = NTXentLoss(temperature=temperature, memory_bank_size=(memory_bank_size, out_dim))
 
     def forward(self, x):
         if self.multimodal:

@@ -2,14 +2,14 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 23)
-      +model: simclr, moco, simsiam, vicreg, nnclr, byol, barlowtwins
-      +data: neurips_cite_multimodal
+      random_seed: range(20, 21)
+      +model: simclr, nnclr, moco
+      +data: pbmc_multimodal
       +augmentation: clear_pipeline
       model.integrate: concat
       model.predict_only_rna: False
       model.predict_projection: False
-      model.in_dim2: 134
+      model.temperature: 0.7
       logging.project: architecture-ablation_vol1
   job:
     name: ${random_seed}  # Set the job name to the model name

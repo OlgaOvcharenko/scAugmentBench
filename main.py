@@ -6,7 +6,6 @@ import time
 import hydra
 from omegaconf import DictConfig
 from collections.abc import MutableMapping
-import wandb
 
 import scanpy as sc
 import pandas as pd

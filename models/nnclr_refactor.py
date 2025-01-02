@@ -45,7 +45,7 @@ class NNCLR(pl.LightningModule):
                 self.loss_img = nn.CrossEntropyLoss()
                 self.loss_txt = nn.CrossEntropyLoss()
             else:
-                self.criterion = NTXentLoss()
+                self.criterion = NTXentLoss(temperature=temperature)
         
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
@@ -54,7 +54,7 @@ class NNCLR(pl.LightningModule):
             self.prediction_head = NNCLRPredictionHead(out_dim, hidden_dim_2, out_dim)
             self.memory_bank = NNMemoryBankModule(size=(memory_bank_size, out_dim))
 
-            self.criterion = NTXentLoss()
+            self.criterion = NTXentLoss(temperature=temperature)
 
     def forward(self, x):
         if self.multimodal:

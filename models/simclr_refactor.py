@@ -13,7 +13,7 @@ import numpy as np
 
 class SimCLR(pl.LightningModule):
     
-    def __init__(self, in_dim, hidden_dim, factor, multimodal, out_dim, in_dim2=0, integrate=None, predict_only_rna=False, predict_projection=False, **kwargs):
+    def __init__(self, in_dim, hidden_dim, factor, multimodal, out_dim, temperature, in_dim2=0, integrate=None, predict_only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
 
         self.multimodal = multimodal
@@ -35,11 +35,13 @@ class SimCLR(pl.LightningModule):
                 self.loss_img = nn.CrossEntropyLoss()
                 self.loss_txt = nn.CrossEntropyLoss()
             else:
-                self.criterion = NTXentLoss()
+                print(temperature)
+                self.criterion = NTXentLoss(temperature=temperature)
+                print(self.criterion)
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)
-            self.criterion = NTXentLoss()
+            self.criterion = NTXentLoss(temperature=temperature)
 
     def forward(self, x):
         if self.multimodal:

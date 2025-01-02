@@ -2,8 +2,8 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 23)
-      +model: simclr, moco, simsiam, vicreg, nnclr, byol, barlowtwins
+      random_seed: range(20, 21)
+      +model: simclr
       +data: neurips_cite_multimodal
       +augmentation: clear_pipeline
       model.integrate: concat
