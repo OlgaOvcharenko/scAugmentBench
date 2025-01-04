@@ -1,0 +1,5 @@
+defaults:
+  - data.yaml
+
+data_path: "/cluster/home/oovcharenko/Olga_Data/MCA_dropout_rand"
+dname: "MCA"

@@ -1,0 +1,19 @@
+# @package _global_
+hydra:
+  sweeper:
+    params:
+      random_seed: range(20, 21)
+      +model: simclr
+      +data: mouse_dropout_rand
+      +augmentation: masking_only
+      # ++augmentation.mask.apply_prob: 0.25, 0.5, 0.75, 0.9
+      model.hidden_dim: 64
+      model.training.max_epochs: 200
+      ++model.multimodal: False
+      data.n_hvgs: 4000
+      logging.project: architecture-ablation_vol4
+  job:
+    name: ${random_seed}
+  sweep:
+    dir: masking/
+    subdir: ${data.dname}/${model.model}/base/temp_${model.temperature}/${random_seed}

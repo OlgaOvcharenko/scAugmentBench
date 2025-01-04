@@ -8,7 +8,7 @@ import scanpy as sc
 import scipy.sparse as sps
 
 from os.path import join
-
+import matplotlib.pyplot as plt
 from moco.utils import py_read_data, load_meta_txt, load_meta_txt7
 from moco.config import Config
 
@@ -923,6 +923,36 @@ def prepare_MCA_our(data_root):
 
     return X, gene_name, cell_name, df_meta
 
+def prepare_MCA_our_rand(data_root):
+    batch_key = 'batch_rand'
+    label_key = 'CellType'
+
+    # ensure row is gene
+    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/MCA.h5ad')
+    print(adata)
+    
+    adata.obs[batch_key] = pd.Categorical(np.random.random_integers(low=1, high=2, size=adata.obs["batch"].shape))
+    print(adata.obs[batch_key])
+
+    sc.pp.neighbors(adata, use_rep='X', metric="cosine")
+    sc.tl.umap(adata, min_dist=0.1)
+    sc.pl.umap(adata, color=["CellType", "batch", batch_key], legend_fontweight='light', wspace=0.5) 
+    plt.savefig("umap_plot_before.png")
+
+
+    exit()
+
+    X = adata.layers['counts'].A.T  # gene by cell
+
+    gene_name = adata.var_names
+    cell_name = adata.obs_names.values
+    df_meta = adata.obs[[batch_key, label_key]].copy()
+
+    df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
+    df_meta[configs.label_key] = df_meta[label_key].astype('category')
+
+    return X, gene_name, cell_name, df_meta
+
 def prepare_Lung_our(data_root):
     batch_key = 'batch'
     label_key = 'cell_type'
@@ -983,6 +1013,9 @@ def prepare_dataset(data_dir):
                     'Lung': prepare_Lung_our,
                     'MCA': prepare_MCA_our,
                     'PBMC': prepare_PBMC_our,
+                    
+                    'MCA_dropout_rand': prepare_MCA_our_rand,
+                    # 'MCA_dropout_half': prepare_MCA_our_half,
     }
 
     # dataset 3 

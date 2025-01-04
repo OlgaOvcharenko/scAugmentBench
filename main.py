@@ -185,7 +185,6 @@ def main(cfg: DictConfig):
         cfg['model']['in_dim'] = train_dataset.n_genes[0]
         cfg['model']['in_dim2'] = train_dataset.n_genes[1]
     else:
-        print("Here")
         train_dataset, val_dataset, ad, pm = load_data(cfg)
         cfg['model']['in_dim'] = train_dataset.n_genes
 
