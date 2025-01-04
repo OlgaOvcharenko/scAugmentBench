@@ -15,7 +15,7 @@ class SimCLR(pl.LightningModule):
     
     def __init__(self, in_dim, hidden_dim, factor, multimodal, out_dim, temperature, in_dim2=0, integrate=None, predict_only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
-
+        print(multimodal)
         self.multimodal = multimodal
         self.predict_projection = predict_projection
         out_dim=hidden_dim//factor
@@ -35,9 +35,7 @@ class SimCLR(pl.LightningModule):
                 self.loss_img = nn.CrossEntropyLoss()
                 self.loss_txt = nn.CrossEntropyLoss()
             else:
-                print(temperature)
                 self.criterion = NTXentLoss(temperature=temperature)
-                print(self.criterion)
         else:
             self.backbone = get_backbone_deep(in_dim, hidden_dim, **kwargs)
             self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, out_dim)

@@ -14,7 +14,7 @@ import numpy as np
 
 class NNCLR(pl.LightningModule):
 
-    def __init__(self, in_dim, hidden_dim, multimodal, factor, memory_bank_size=4096, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
+    def __init__(self, in_dim, hidden_dim, multimodal, factor, temperature, memory_bank_size=4096, in_dim2=0, integrate=None, only_rna=False, predict_projection=False, **kwargs):
         super().__init__()
 
         self.multimodal = multimodal

@@ -1,5 +1,5 @@
 defaults:
   - data.yaml
 
-data_path: "../own_model/CLAIRE-data/MouseCellAtlas"
+data_path: "/cluster/home/oovcharenko/Olga_Data/MCA"
 dname: "MCA"

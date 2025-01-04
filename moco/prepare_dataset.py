@@ -172,7 +172,7 @@ def prepare_Lung(data_root):
     label_key = 'cell_type'
 
     # ensure row is gene
-    adata = sc.read_h5ad(join(data_root, 'Lung_atlas_public.h5ad'))
+    adata = sc.read_h5ad(join(data_root, 'Lung.h5ad'))
 
     X = adata.layers['counts'].A.T  # gene by cell
 
@@ -833,21 +833,129 @@ def prepare_NewDataset(data_root):
     # return X, gene_name, cell_name, df_meta
     # ===========
 
+def prepare_ImmHuman_our(data_root):
+    batch_key = 'batch'
+    label_key = 'CellType'
+
+    # ensure row is gene
+    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/ImmHuman.h5ad')
+
+    X = sps.csr_matrix(adata.layers['counts'].T)  # gene by cell
+
+    gene_name = adata.var_names
+    cell_name = adata.obs_names.values
+    df_meta = adata.obs[[batch_key, label_key]].copy()
+
+    df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
+    df_meta[configs.label_key] = df_meta[label_key].astype('category')
+
+    return X, gene_name, cell_name, df_meta
+
+def prepare_PBMC_our(data_root):
+    batch_key = 'batch'
+    label_key = 'CellType'
+
+    # ensure row is gene
+    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/PBMC.h5ad')
+
+    X = adata.layers['counts'].A.T  # gene by cell
+
+    gene_name = adata.var_names
+    cell_name = adata.obs_names.values
+    df_meta = adata.obs[[batch_key, label_key]].copy()
+
+    df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
+    df_meta[configs.label_key] = df_meta[label_key].astype('category')
+
+    return X, gene_name, cell_name, df_meta
+
+def prepare_Pancreas_our(data_root):
+    batch_key = 'batch'
+    label_key = 'celltype'
+
+    # ensure row is gene
+    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/Pancreas.h5ad')
+
+    X = adata.layers['counts'].A.T  # gene by cell
+
+    gene_name = adata.var_names
+    cell_name = adata.obs_names.values
+    df_meta = adata.obs[[batch_key, label_key]].copy()
+
+    df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
+    df_meta[configs.label_key] = df_meta[label_key].astype('category')
+
+    return X, gene_name, cell_name, df_meta
+
+def prepare_ImmuneAtlas_our(data_root):
+    batch_key = 'batchlb'
+    label_key = 'cell_type'
+
+    # ensure row is gene
+    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/ImmuneAtlas.h5ad')
+
+    X = adata.layers['counts'].A.T  # gene by cell
+
+    gene_name = adata.var_names
+    cell_name = adata.obs_names.values
+    df_meta = adata.obs[[batch_key, label_key]].copy()
+
+    df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
+    df_meta[configs.label_key] = df_meta[label_key].astype('category')
+
+    return X, gene_name, cell_name, df_meta
+
+def prepare_MCA_our(data_root):
+    batch_key = 'batch'
+    label_key = 'CellType'
+
+    # ensure row is gene
+    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/MCA.h5ad')
+
+    X = adata.layers['counts'].A.T  # gene by cell
+
+    gene_name = adata.var_names
+    cell_name = adata.obs_names.values
+    df_meta = adata.obs[[batch_key, label_key]].copy()
+
+    df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
+    df_meta[configs.label_key] = df_meta[label_key].astype('category')
+
+    return X, gene_name, cell_name, df_meta
+
+def prepare_Lung_our(data_root):
+    batch_key = 'batch'
+    label_key = 'cell_type'
+
+    # ensure row is gene
+    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/Lung.h5ad')
+
+    X = adata.layers['counts'].A.T  # gene by cell
+
+    gene_name = adata.var_names
+    cell_name = adata.obs_names.values
+    df_meta = adata.obs[[batch_key, label_key]].copy()
+
+    df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
+    df_meta[configs.label_key] = df_meta[label_key].astype('category')
+
+    return X, gene_name, cell_name, df_meta
+
 
 def prepare_dataset(data_dir):
     dataset_name = data_dir.split('/')[-1]
     func_dict = {
                     'MouseCellAtlas': prepare_MouseCellAtlas, 
-                    'Pancreas': prepare_Pancreas, 
-                    'PBMC': prepare_PBMC,
+                    # 'Pancreas': prepare_Pancreas, 
+                    # 'PBMC': prepare_PBMC,
                     'Neurips_cite_multimodal': prepare_Neurips_cite_Multimodal,
                     'PBMC_multimodal': prepare_PBMC_Multimodal, 
                     'PBMCFull': prepare_PBMC_Full, 
                     'CellLine': prepare_CellLine, 
                     'MouseRetina': prepare_MouseRetina, 
-                    'Lung': prepare_Lung,
-                    'ImmHuman': prepare_ImmHuman,
-                    'ImmuneAtlas': prepare_ImmuneAtlas,
+                    # 'Lung': prepare_Lung,
+                    # 'ImmHuman': prepare_ImmHuman,
+                    # 'ImmuneAtlas': prepare_ImmuneAtlas,
                     'Muris': prepare_Muris,
                     'Neocortex': prepare_Neo,
                     'Muris_2000': prepare_Muris_2000,
@@ -867,7 +975,14 @@ def prepare_dataset(data_dir):
                     'Uhlitz': prepare_Uhlitz,
                     'Lee': prepare_Lee,
                     'HLCACore': prepare_HCLA_Core,
-                    'new_dataset': prepare_NewDataset
+                    'new_dataset': prepare_NewDataset,
+
+                    'ImmHuman': prepare_ImmHuman_our,
+                    'Pancreas': prepare_Pancreas_our,
+                    'ImmuneAtlas': prepare_ImmuneAtlas_our,
+                    'Lung': prepare_Lung_our,
+                    'MCA': prepare_MCA_our,
+                    'PBMC': prepare_PBMC_our,
     }
 
     # dataset 3 
