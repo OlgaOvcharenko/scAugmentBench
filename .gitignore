@@ -30,3 +30,7 @@ plots/
 
 logs/
 temperature/
+
+projection/
+unimodal_projection.log
+unimodal_temp.log
