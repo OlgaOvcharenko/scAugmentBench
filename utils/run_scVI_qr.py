@@ -42,22 +42,22 @@ def train_qr_scVI(adata_ref, adata_query, batch_key, cell_type):
     return acc, f1_macro
 
 
-# ImmuneAtlas
-adata_path = "/cluster/home/oovcharenko/Olga_Data/ImmuneAtlas.h5ad"
-batch_key = "batchlb"
-cell_type = "cell_type"
+# # ImmuneAtlas
+# adata_path = "/cluster/home/oovcharenko/Olga_Data/ImmuneAtlas.h5ad"
+# batch_key = "batchlb"
+# cell_type = "cell_type"
 
-accs, macro_f1s = [], []
-adata = sc.read(adata_path)
-for i in range(0, 2):
-    adata_ref = adata[adata.obs["batchlb"] != "10x 5' v2",].copy()
-    adata_query = adata[adata.obs["batchlb"] == "10x 5' v2",].copy()
-    acc, macro_f1 = train_qr_scVI(adata_ref=adata_ref, adata_query=adata_query, batch_key=batch_key, cell_type=cell_type)
-    accs.append(acc)
-    macro_f1s.append(macro_f1)
+# accs, macro_f1s = [], []
+# adata = sc.read(adata_path)
+# for i in range(0, 2):
+#     adata_ref = adata[adata.obs["batchlb"] != "10x 5' v2",].copy()
+#     adata_query = adata[adata.obs["batchlb"] == "10x 5' v2",].copy()
+#     acc, macro_f1 = train_qr_scVI(adata_ref=adata_ref, adata_query=adata_query, batch_key=batch_key, cell_type=cell_type)
+#     accs.append(acc)
+#     macro_f1s.append(macro_f1)
 
-print(f"{adata_path.split('/')[-1]} avg Accuracy {np.mean(accs)}, macro F1 {np.mean(macro_f1s)}")
-print(f"{adata_path.split('/')[-1]} std Accuracy {np.std(accs)}, macro F1 {np.std(macro_f1s)}")
+# print(f"{adata_path.split('/')[-1]} avg Accuracy {np.mean(accs).round(3)}, macro F1 {np.mean(macro_f1s).round(3)}")
+# print(f"{adata_path.split('/')[-1]} std Accuracy {np.std(accs).round(3)}, macro F1 {np.std(macro_f1s).round(3)}")
 
 
 # Pancreas
@@ -76,5 +76,5 @@ for batch in batches:
         accs.append(acc)
         macro_f1s.append(macro_f1)
 
-    print(f"{adata_path.split('/')[-1]} avg Accuracy {np.mean(accs)}, macro F1 {np.mean(macro_f1s)}")
-    print(f"{adata_path.split('/')[-1]} std Accuracy {np.std(accs)}, macro F1 {np.std(macro_f1s)}")
+    print(f"{adata_path.split('/')[-1]} {batch} avg Accuracy {np.mean(accs).round(3)}, macro F1 {np.mean(macro_f1s).round(3)}")
+    print(f"{adata_path.split('/')[-1]} {batch} std Accuracy {np.std(accs).round(3)}, macro F1 {np.std(macro_f1s).round(3)}")
