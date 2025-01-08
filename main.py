@@ -237,6 +237,7 @@ def main(cfg: DictConfig):
                 fltr = [pm.adata.obs['batchlb'][i] in cfg["data"]["holdout_batch"] for i in range(len(pm.adata))]
             
             train_adata = ad
+            print(fltr)
             val_adata = pm.adata[fltr]
 
             # Extended predict: only RNA together with full and modality prediction
@@ -263,7 +264,16 @@ def main(cfg: DictConfig):
             
             train_adata = ad
             val_adata = pm.adata[fltr]
-            clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType')
+            clf_in, maavg_f1_in, acc_in, run_time_in = train_clf(model, train_adata, val_adata, ctype_key='CellType', exclude=False, umap_plot_train=results_dir.joinpath("plot_train_include.png"), umap_plot_test=results_dir.joinpath("plot_test_include.png"))
+
+            clf, maavg_f1, acc, run_time = train_clf(model, train_adata, val_adata, ctype_key='CellType', exclude=True, umap_plot_train=results_dir.joinpath("plot_train_exclude.png"), umap_plot_test=results_dir.joinpath("plot_test_exclude.png"))
+
+            results2 = pd.DataFrame([maavg_f1, acc, run_time, maavg_f1_in, acc_in, run_time_in], index=["Macro-F1", "Accuracy", "Run-Time", "Macro-F1-in", "Accuracy-in", "Run-Time-in"])
+            results2.to_csv(os.path.join(results_dir, "qr-results.csv"))
+            
+            print(f"MaAVG-F1: {maavg_f1}\nAccuracy: {acc} MaAVG-F1-in: {maavg_f1_in}\nAccuracy-in: {acc_in}")
+            _LOGGER.info(f"Finished Training of the QR-Mapper in {run_time} seconds.")
+            exit(0)
 
         results = pd.DataFrame([maavg_f1, acc, run_time], index=["Macro-F1", "Accuracy", "Run-Time"])
         results.to_csv(os.path.join(results_dir, "qr-results.csv"))

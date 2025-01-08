@@ -2,16 +2,18 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 25)
+      random_seed: range(20, 23)
       model.hidden_dim: 64
       model.training.max_epochs: 200
       +model: barlowtwins, byol, moco, nnclr, simclr, simsiam, vicreg
       +data: immune_atlas
+      ++model.multimodal: False
+      data.n_hvgs: 4000
       data.holdout_batch: ["10x 5' v2"]
       +augmentation: clear_pipeline
-      logging.project: architecture-ablation_vol1
+      logging.project: architecture-ablation_vol4
   job:
     name: ${random_seed}
   sweep:
-    dir: ablation-db-2/qr-mapper/
+    dir: qr/
     subdir: ${data.dname}/${model.model}/${random_seed}

@@ -24,6 +24,7 @@ from data.dataset import OurDataset, OurMultimodalDataset
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.neighbors import KNeighborsClassifier, NearestNeighbors
 import os
+import matplotlib.pyplot as plt
 
 _model_dict = {"BYOL": BYOL, "BarlowTwins": BarlowTwins, "MoCo": MoCo, "VICReg": VICReg, "SimCLR": SimCLR, "SimSiam": SimSiam, "NNCLR": NNCLR, "Concerto": Concerto}
 
@@ -107,7 +108,17 @@ def inference(model, val_loader):
     embedding = np.array(embedding)
     return embedding
 
-def train_clf(encoder, train_adata, val_adata, batch_size=256, num_workers=12, ctype_key='CellType'):
+def train_clf(encoder, train_adata, val_adata, batch_size=256, num_workers=12, ctype_key='CellType', exclude=True, umap_plot_train="", umap_plot_test=""):
+    if exclude:
+        exclude_bool = list(set(
+            list(set(val_adata.obs[ctype_key].tolist()) - set(train_adata.obs[ctype_key].tolist())) + 
+            list(set(train_adata.obs[ctype_key].tolist()) - set(val_adata.obs[ctype_key].tolist()))))
+        # exclude_ref = train_adata.obs[ctype_key].isin(exclude_bool)!= True
+        # train_adata = train_adata[exclude_ref]
+
+        exclude_query = val_adata.obs[ctype_key].isin(exclude_bool)!= True
+        val_adata = val_adata[exclude_query]
+
     train_loader = torch.utils.data.DataLoader(
         dataset=OurDataset(adata=train_adata, transforms=None, valid_ids=None),
         batch_size=batch_size, 
@@ -127,7 +138,19 @@ def train_clf(encoder, train_adata, val_adata, batch_size=256, num_workers=12, c
     train_X, val_X = infer_embedding(encoder, train_loader), infer_embedding(encoder, val_loader)
     train_y = train_adata.obs[ctype_key]
     val_y = val_adata.obs[ctype_key]
-    
+
+    train_adata.obsm["Embedding"] = train_X
+    sc.pp.neighbors(train_adata, use_rep="Embedding", metric="cosine")
+    sc.tl.umap(train_adata, min_dist=0.1)
+    sc.pl.umap(train_adata, color=["CellType"], legend_fontweight='light') 
+    plt.savefig(umap_plot_train)
+
+    val_adata.obsm["Embedding"] = val_X
+    sc.pp.neighbors(val_adata, use_rep="Embedding", metric="cosine")
+    sc.tl.umap(val_adata, min_dist=0.1)
+    sc.pl.umap(val_adata, color=["CellType"], legend_fontweight='light') 
+    plt.savefig(umap_plot_test)
+
     clf = KNeighborsClassifier(n_neighbors=11)
     clf = clf.fit(train_X, train_y)
     run_time = time.time() - start

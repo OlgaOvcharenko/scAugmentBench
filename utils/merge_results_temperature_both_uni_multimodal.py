@@ -20,7 +20,8 @@ def compare_model_architectures(projection, data):
             for metric in metrics:
                 cols.append(f"{d}_{p}_{metric}")
                     
-    df_list = [pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols)]
+    # df_list = [pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols)]
+    df_list = [pd.DataFrame(index=models_list, columns=cols), pd.DataFrame(index=models_list, columns=cols)]
     for model in models_list:
         for p in projection:
             for d in data:
@@ -44,7 +45,6 @@ def compare_model_architectures(projection, data):
     df_final = []
     for df in df_list:
         df_final.append(scale_result(df, projection, data))
-
 
     averages = pd.concat([each.stack() for each in df_final],axis=1)\
              .apply(lambda x:x.mean(),axis=1)\
