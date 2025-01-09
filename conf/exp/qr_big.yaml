@@ -4,7 +4,7 @@ hydra:
     params:
       random_seed: range(20, 23)
       model.hidden_dim: 64
-      model.training.max_epochs: 200
+      model.training.max_epochs: 100
       +model: barlowtwins, byol, moco, nnclr, simclr, simsiam, vicreg
       +data: immune_atlas
       ++model.multimodal: False

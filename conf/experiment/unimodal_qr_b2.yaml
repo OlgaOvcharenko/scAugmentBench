@@ -2,12 +2,12 @@
 hydra:
   sweeper:
     params:
-      random_seed: range(20, 21)
-      +model: barlowtwins
+      random_seed: range(20, 23)
+      +model: barlowtwins, byol, moco, nnclr, simclr, simsiam, vicreg
       +data: pancreas
       +augmentation: clear_pipeline
       model.hidden_dim: 64
-      model.training.max_epochs: 1
+      model.training.max_epochs: 100
       ++model.multimodal: False
       data.n_hvgs: 4000
       model.predict_projection: False

@@ -9,6 +9,54 @@ experiment = 'qr'
 data = ['Pancreas']
 models_list = ['SimCLR', 'MoCo', 'SimSiam', 'NNCLR', 'BYOL', 'VICReg', 'BarlowTwins']
 
+import os
+from glob import glob
+import pandas as pd
+import csv
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+
+experiment = 'qr'
+data = ['Pancreas']
+models_list = ['SimCLR', 'MoCo', 'SimSiam', 'NNCLR', 'BYOL', 'VICReg', 'BarlowTwins']
+batches = ["['Mutaro_b2']", "['Segerstolpe_b3']", "['Wang_b4']", "['Xin_b5']"]
+
+def compare_model_architectures_pancreas(data):
+    metrics = ['Macro-F1', 'Accuracy']
+
+    cols = []
+    for d in data:
+        for batch in batches:
+            for metric in metrics:
+                cols.append(f"{d}_{batch}_{metric}")
+    result = pd.DataFrame(index=models_list, columns=cols)
+    std = pd.DataFrame(index=models_list, columns=cols)
+
+    for model in models_list:
+        for d in data:
+            for batch in batches:
+                tmp_df = pd.DataFrame(columns=metrics)
+                for i, seed in enumerate(["20", "21", "22"]):
+                    PATH = experiment + '/' + d + '/' + model + "/" + seed + "/" + batch + '/qr-results.csv'
+                    
+                    with open(PATH, newline='') as csvfile:
+                        reader = csv.DictReader(csvfile)
+                        vals = []
+                        for row in reader:
+                            vals.append(float(row['0']))
+                        tmp_df.loc[i] = [vals[0], vals[1]]
+                                
+                for k, v in tmp_df.mean(axis=0).to_dict().items():
+                    result.loc[model, f'{d}_{batch}_{k}'] = v
+                
+                for k, v in tmp_df.std(axis=0).to_dict().items():
+                    std.loc[model, f'{d}_{batch}_{k}'] = v
+            
+    result, std = result.astype(float).round(3), std.astype(float).round(3)
+    print(result)
+    print(std)
+    return result, std
+
 
 def compare_model_architectures(data):
     metrics = ['Macro-F1', 'Accuracy']
@@ -45,16 +93,16 @@ def compare_model_architectures(data):
     return result, std
 
 
-# # Compare backbone concat for only RNA and both modalities 
-# averages, stds = compare_model_architectures(data=['Pancreas'])
-# dir_path = "results/qr/unimoda_rerun/Pancreas/"
-# if not os.path.exists(dir_path):
-#     os.makedirs(dir_path)
-#     print("Directory created successfully!")
-# else:
-#     print("Directory already exists!")
-# averages.to_csv(f"{dir_path}avg.csv")
-# averages.to_csv(f"{dir_path}std.csv")
+# Compare backbone concat for only RNA and both modalities 
+averages, stds = compare_model_architectures_pancreas(data=['Pancreas'])
+dir_path = "results/qr/unimoda_rerun/Pancreas/"
+if not os.path.exists(dir_path):
+    os.makedirs(dir_path)
+    print("Directory created successfully!")
+else:
+    print("Directory already exists!")
+averages.to_csv(f"{dir_path}avg.csv")
+stds.to_csv(f"{dir_path}std.csv")
 
 # Compare backbone concat for only RNA and both modalities 
 averages, stds = compare_model_architectures(data=['ImmuneAtlas'])
@@ -65,5 +113,5 @@ if not os.path.exists(dir_path):
 else:
     print("Directory already exists!")
 averages.to_csv(f"{dir_path}avg.csv")
-averages.to_csv(f"{dir_path}std.csv")
+stds.to_csv(f"{dir_path}std.csv")
 

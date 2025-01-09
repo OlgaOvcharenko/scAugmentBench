@@ -7,7 +7,7 @@ hydra:
       +data: pancreas
       +augmentation: clear_pipeline
       model.hidden_dim: 64
-      model.training.max_epochs: 200
+      model.training.max_epochs: 100
       ++model.multimodal: False
       data.n_hvgs: 4000
       model.predict_projection: False

@@ -113,8 +113,8 @@ def train_clf(encoder, train_adata, val_adata, batch_size=256, num_workers=12, c
         exclude_bool = list(set(
             list(set(val_adata.obs[ctype_key].tolist()) - set(train_adata.obs[ctype_key].tolist())) + 
             list(set(train_adata.obs[ctype_key].tolist()) - set(val_adata.obs[ctype_key].tolist()))))
-        # exclude_ref = train_adata.obs[ctype_key].isin(exclude_bool)!= True
-        # train_adata = train_adata[exclude_ref]
+        exclude_ref = train_adata.obs[ctype_key].isin(exclude_bool)!= True
+        train_adata = train_adata[exclude_ref]
 
         exclude_query = val_adata.obs[ctype_key].isin(exclude_bool)!= True
         val_adata = val_adata[exclude_query]
