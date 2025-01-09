@@ -27,6 +27,9 @@ class OurDataset(Dataset):
 
     def __getitem__(self, index):
         #index = self.valid_cellidx[i]
+        print(self.adata.obs["batch"])
+        exit()
+
         x = self.X[index].unsqueeze(0)
         if self.transforms is not None:
             """
