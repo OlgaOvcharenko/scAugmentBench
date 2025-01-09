@@ -215,7 +215,8 @@ def main(cfg: DictConfig):
                                             num_workers=4,
                                             logger=_LOGGER,
                                             embedding_save_path=results_dir.joinpath("embedding.npz"),
-                                            umap_plot=results_dir.joinpath("plot.png")
+                                            umap_plot=results_dir.joinpath("plot.png"),
+                                            dsbn=cfg["model"]["dsbn"]
                                         )
         try:
             results.to_csv(results_dir.joinpath("evaluation_metrics.csv"), index=None)

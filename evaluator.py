@@ -21,11 +21,14 @@ _BATCH_METRICS = BatchCorrection(graph_connectivity=True,
                                  silhouette_batch=True
                                  )
 
-def infer_embedding(model, val_loader):
+def infer_embedding(model, val_loader, dsbn: bool = False):
     outs = []
     for x in val_loader:
         with torch.no_grad():
-            outs.append(model.predict(x[0]))
+            if dsbn:
+                outs.append(model.predict_dsbn(x[0], x[2])) 
+            else:
+                outs.append(model.predict(x[0]))
     
     embedding = torch.concat(outs)
     embedding = np.array(embedding)
@@ -62,14 +65,14 @@ def infer_projector_embedding(model, val_loader):
 
 
 def evaluate_model(model, adata, dataset, batch_size, num_workers, logger, embedding_save_path,
-                   batch_key="batchlb", cell_type_label="CellType", umap_plot=""):
+                   batch_key="batchlb", cell_type_label="CellType", umap_plot="", dsbn=False):
     val_loader = torch.utils.data.DataLoader(
                     dataset,
                     batch_size=batch_size,
                     num_workers=num_workers,
                     shuffle=False,
                     drop_last=False)
-    embedding = infer_embedding(model, val_loader)
+    embedding = infer_embedding(model, val_loader, dsbn=dsbn)
     np.savez_compressed(embedding_save_path, embedding)
 
     logger.info(f"Inferred embedding of shape {embedding.shape}")

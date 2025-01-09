@@ -34,3 +34,6 @@ temperature/
 projection/
 unimodal_projection.log
 unimodal_temp.log
+
+qr/
+dsbn/

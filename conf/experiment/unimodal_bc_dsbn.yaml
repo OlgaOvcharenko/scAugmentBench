@@ -3,14 +3,14 @@ hydra:
   sweeper:
     params:
       random_seed: range(20, 21)
-      +model: simclr
+      +model: barlowtwins
       +data: mouse
       +augmentation: clear_pipeline
       model.hidden_dim: 64
-      model.training.max_epochs: 200
+      model.training.max_epochs: 1
       ++model.multimodal: False
       data.n_hvgs: 4000
-      model.predict_projection: False
+      ++model.predict_projection: False
       model.multimodal: False
       logging.project: architecture-ablation_vol4
       ++model.dsbn: True

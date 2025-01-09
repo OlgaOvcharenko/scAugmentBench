@@ -7,7 +7,7 @@ from lightly.loss.negative_cosine_similarity import NegativeCosineSimilarity
 from lightly.models.modules.heads import SimSiamPredictionHead, SimSiamProjectionHead
 
 from utils.train_utils import *
-from models.model_utils import get_backbone, get_backbone_deep, clip_loss
+from models.model_utils import get_backbone_deep, clip_loss
 
 import lightning as pl
 import numpy as np

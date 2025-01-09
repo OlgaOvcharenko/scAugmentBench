@@ -76,6 +76,8 @@ def train_model(dataset, model_config, random_seed, batch_size,
             drop_last=True)
     
     logger.info(f".. Dataloader ready. Now build {model_name}")
+
+    model_config["num_domains"] = [int(v) for v in dataset.adata.obs["batch"].unique().tolist()]
     model = _model_dict[str(model_name)](**model_config)
     
     print(n_epochs)

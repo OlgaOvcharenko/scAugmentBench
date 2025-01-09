@@ -5,36 +5,65 @@ class DomainSpecificBatchNorm(nn.Module):
 
     def __init__(self, num_features, num_classes):
         super(DomainSpecificBatchNorm, self).__init__()
-        self.bns = nn.ModuleList(
-            [nn.BatchNorm1d(num_features) for _ in range(num_classes)])
+
+        dict_batches = {}
+        for i in num_classes:
+            dict_batches[str(i)] = nn.BatchNorm1d(num_features)
+        
+        self.bns = nn.ModuleDict(dict_batches)
 
     def reset_running_stats(self):
-        for bn in self.bns:
+        for bn in self.bns.values():
             bn.reset_running_stats()
 
     def reset_parameters(self):
-        for bn in self.bns:
+        for bn in self.bns.values():
             bn.reset_parameters()
 
     def forward(self, x, domain_label):
-        bn = self.bns[domain_label[0]]
-        return bn(x), domain_label
+        bn = self.bns[domain_label]
+        return bn(x)
+    
+class DSBNBackbone(nn.Module):
+    def __init__(self, in_dim: int, encoder_out_dim: int, dropout:float=0, num_domains=[],):
+        super().__init__()
+        self.num_domains = num_domains
+        self.encoder_out_dim = encoder_out_dim
+        self.lin = nn.Linear(in_dim, 128)
+        self.bn = DomainSpecificBatchNorm(128, num_domains)
+        self.relu = nn.ReLU()
+        self.lin2 = nn.Linear(128, encoder_out_dim)
+        self.bn2 = DomainSpecificBatchNorm(encoder_out_dim, num_domains)
+        self.drop = nn.Dropout(p=dropout)
+    
+    def reset_running_stats(self):
+        self.bn.reset_running_stats()
+        self.bn2.reset_running_stats()
 
-def get_backbone(in_dim: int, out_dim: int, dropout:float=0, **kwargs):
-    """
-    Returns a single-layer encoder to extract features from gene expression profiles.
+    def reset_parameters(self):
+        self.bn.reset_parameters()
+        self.bn2.reset_parameters()
+        
+    def forward(self, x, bid):
+        results = torch.zeros(x.shape[0], self.encoder_out_dim)
+        bid = torch.Tensor(bid)
+        for i in self.num_domains:
+            mask = bid == i
+            new_x = x[mask]
 
-    In our benchmark study, this architecture is shared between all models.
-    """
-    print(f"Backbone built with dropout {dropout}")
+            x1 = self.lin(new_x)
+            x2 = self.bn(x1, str(i))
+            x3 = self.relu(x2)
+            x4 = self.lin2(x3)
+            x5 = self.bn2(x4, str(i))
+            x6 = self.drop(x5)
+            # results.index_copy_(0, mask, x6)
+            # torch_v = torch.arange(1,n)
+            results[mask] = x6
+        return results
 
-    modules = [
-        nn.Linear(in_dim, out_dim),
-        nn.BatchNorm1d(out_dim),
-        nn.ReLU(),
-        nn.Dropout(p=dropout)
-    ]
-    return nn.Sequential(*modules)
+def get_backbone(in_dim: int, encoder_out_dim: int, dropout:float=0, dsbn=False, num_domains=1, **kwargs):
+    pass
 
 def get_backbone_deep(in_dim: int, encoder_out_dim: int, dropout:float=0, dsbn=False, num_domains=1, **kwargs):
     """
@@ -44,24 +73,18 @@ def get_backbone_deep(in_dim: int, encoder_out_dim: int, dropout:float=0, dsbn=F
     """
     print(f"Backbone built with dropout {dropout}")
 
-    # if dsbn:
-    #     modules = [
-    #         nn.Linear(in_dim, 128),
-    #         DomainSpecificBatchNorm(128, num_domains),
-    #         nn.ReLU(),
-    #         nn.Linear(128, encoder_out_dim),
-    #         DomainSpecificBatchNorm(128, num_domains),
-    #         nn.Dropout(p=dropout),
-    #     ]
-    # else:
-    modules = [
-        nn.Linear(in_dim, 128),
-        nn.BatchNorm1d(128),
-        nn.ReLU(),
-        nn.Linear(128, encoder_out_dim),
-        nn.BatchNorm1d(encoder_out_dim),
-        nn.Dropout(p=dropout),
-    ]
+    if dsbn:
+        return DSBNBackbone(in_dim=in_dim, encoder_out_dim=encoder_out_dim, dropout=dropout, num_domains=num_domains)
+
+    else:
+        modules = [
+            nn.Linear(in_dim, 128),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Linear(128, encoder_out_dim),
+            nn.BatchNorm1d(encoder_out_dim),
+            nn.Dropout(p=dropout),
+        ]
     return nn.Sequential(*modules)
 
 def clip_loss(image_features, text_features, logit_scale, loss_img, loss_txt):
