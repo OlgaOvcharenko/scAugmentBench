@@ -35,3 +35,5 @@ projection/
 unimodal_projection.log
 unimodal_temp.log
 qr/
+projection copy/
+rerun_unimodal_100/

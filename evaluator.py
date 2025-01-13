@@ -77,7 +77,7 @@ def evaluate_model(model, adata, dataset, batch_size, num_workers, logger, embed
 
     sc.pp.neighbors(adata, use_rep="Embedding", metric="cosine")
     sc.tl.umap(adata, min_dist=0.1)
-    sc.pl.umap(adata, color=["CellType", "batch"], legend_fontweight='light') 
+    sc.pl.umap(adata, color=["CellType", batch_key], legend_fontweight='light') 
     plt.savefig(umap_plot)
     
     try:

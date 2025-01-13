@@ -11,11 +11,11 @@
 
 # nohup python main.py --multirun +experiment=temperature_single_modality_experiment +cluster=slurm >> unimodal_temp.log 2>&1 &
 
-# nohup python main.py --multirun +experiment=unimodal_projection_no +cluster=slurm >> unimodal_projection.log 2>&1 &
+nohup python main.py --multirun +experiment=unimodal_projection_no +cluster=slurm >> unimodal_projection.log 2>&1 &
 
-nohup python main.py --multirun +experiment=unimodal_qr_b2 +cluster=slurm >> unimodal_qr_b2.log 2>&1 &
-nohup python main.py --multirun +experiment=unimodal_qr_b3 +cluster=slurm >> unimodal_qr_b3.log 2>&1 &
-nohup python main.py --multirun +experiment=unimodal_qr_b4 +cluster=slurm >> unimodal_qr_b4.log 2>&1 &
-nohup python main.py --multirun +experiment=unimodal_qr_b5 +cluster=slurm >> unimodal_qr_b5.log 2>&1 &
+# nohup python main.py --multirun +experiment=unimodal_qr_b2 +cluster=slurm >> unimodal_qr_b2.log 2>&1 &
+# nohup python main.py --multirun +experiment=unimodal_qr_b3 +cluster=slurm >> unimodal_qr_b3.log 2>&1 &
+# nohup python main.py --multirun +experiment=unimodal_qr_b4 +cluster=slurm >> unimodal_qr_b4.log 2>&1 &
+# nohup python main.py --multirun +experiment=unimodal_qr_b5 +cluster=slurm >> unimodal_qr_b5.log 2>&1 &
 
-nohup python main.py --multirun +exp=qr_big +cluster=slurm >> qr_big.log 2>&1 &
+# nohup python main.py --multirun +exp=qr_big +cluster=slurm >> qr_big.log 2>&1 &
