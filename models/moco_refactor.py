@@ -184,6 +184,8 @@ class MoCo(pl.LightningModule):
             key = self.forward_momentum(x_key, bid1)
             # TODO: symmetrize the loss?
             loss = self.criterion(query, key)
+
+            self.log('train_loss', loss)
             return loss
     
     def configure_optimizers(self):

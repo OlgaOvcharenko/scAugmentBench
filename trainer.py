@@ -1,4 +1,5 @@
 import logging
+import pathlib
 
 import numpy as np
 import scanpy as sc
@@ -63,6 +64,18 @@ class CheckpointEveryNSteps(pl.Callback):
             ckpt_path = os.path.join(trainer.checkpoint_callback.dirpath, filename)
             trainer.save_checkpoint(ckpt_path)
 
+class LossLogger(pl.Callback):
+    def __init__(self):
+        self.train_loss = []
+        self.val_loss = []
+
+    def on_train_epoch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        print(trainer.callback_metrics)
+        if not trainer.sanity_checking:
+            self.train_loss.append(float(trainer.callback_metrics["train_loss"]))
+
+    def on_validation_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        pass
 
 def train_model(dataset, model_config, random_seed, batch_size, 
                 num_workers, n_epochs, logger, ckpt_dir, cfg=None):
@@ -80,18 +93,20 @@ def train_model(dataset, model_config, random_seed, batch_size,
     model_config["num_domains"] = [int(v) for v in dataset.adata.obs["batch"].unique().tolist()]
     model = _model_dict[str(model_name)](**model_config)
     
-    print(n_epochs)
-    print(model_config)
-
+    loss_logger_tft = LossLogger()
+    
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    trainer = pl.Trainer(max_epochs=n_epochs, accelerator=device, default_root_dir=ckpt_dir, callbacks=[CheckpointEveryNSteps(save_step_frequency=25)]) # cpu works for smaller tasks!!
+    trainer = pl.Trainer(max_epochs=n_epochs, accelerator=device, default_root_dir=ckpt_dir, callbacks=[loss_logger_tft], num_sanity_val_steps=0) # cpu works for smaller tasks!!
     logger.info(f".. Model ready. Now train on {device}.")
     
     try:
         trainer.fit(
             model,
-            train_loader,
+            train_loader
         )
+        print("Training Losses by Epoch:", loss_logger_tft.train_loss)
+        np.savetxt(f"{ckpt_dir}/loss.csv", np.array(loss_logger_tft.train_loss), delimiter=",")
+        
         logger.info(f".. Training done.")
     except Exception as error:
         # handle the exception

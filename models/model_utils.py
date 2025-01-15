@@ -33,7 +33,7 @@ class DSBNBackbone(nn.Module):
         self.bn = DomainSpecificBatchNorm(128, num_domains)
         self.relu = nn.ReLU()
         self.lin2 = nn.Linear(128, encoder_out_dim)
-        self.bn2 = DomainSpecificBatchNorm(encoder_out_dim, num_domains)
+        self.bn2 = nn.BatchNorm1d(encoder_out_dim)
         self.drop = nn.Dropout(p=dropout)
     
     def reset_running_stats(self):
@@ -45,8 +45,8 @@ class DSBNBackbone(nn.Module):
         self.bn2.reset_parameters()
         
     def forward(self, x, bid):
-        results = torch.zeros(x.shape[0], self.encoder_out_dim)
-        bid = torch.Tensor(bid)
+        results = torch.zeros(x.shape[0], self.encoder_out_dim, device=x.device)
+        bid = torch.Tensor(bid).to(x.device)
         for i in self.num_domains:
             mask = bid == i
             new_x = x[mask]
@@ -55,7 +55,7 @@ class DSBNBackbone(nn.Module):
             x2 = self.bn(x1, str(i))
             x3 = self.relu(x2)
             x4 = self.lin2(x3)
-            x5 = self.bn2(x4, str(i))
+            x5 = self.bn2(x4)
             x6 = self.drop(x5)
             # results.index_copy_(0, mask, x6)
             # torch_v = torch.arange(1,n)

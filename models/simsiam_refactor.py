@@ -158,7 +158,7 @@ class SimSiam(pl.LightningModule):
             z1, p1 = self.forward(x1, bid1)
             # TODO: symmetrize the loss? --> Using the first term below is symmetry! 
             loss = 0.5 * (self.criterion(z0, p1) + self.criterion(z1, p0))
-        
+        self.log('train_loss', loss)
         return loss
     
     def configure_optimizers(self):

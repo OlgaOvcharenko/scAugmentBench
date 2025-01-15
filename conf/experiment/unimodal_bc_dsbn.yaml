@@ -4,10 +4,10 @@ hydra:
     params:
       random_seed: range(20, 23)
       +model: barlowtwins, byol, moco, nnclr, simclr, simsiam, vicreg
-      +data: mouse, pbmc, immune
+      +data: mouse, immune
       +augmentation: clear_pipeline
       model.hidden_dim: 64
-      model.training.max_epochs: 200
+      model.training.max_epochs: 100
       ++model.multimodal: False
       data.n_hvgs: 4000
       ++model.predict_projection: False
@@ -17,5 +17,5 @@ hydra:
   job:
     name: ${random_seed}
   sweep:
-    dir: dsbn/
+    dir: dsbn_try/
     subdir: ${data.dname}/${model.model}/base/${model.predict_projection}/${random_seed}

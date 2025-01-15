@@ -136,7 +136,6 @@ class BYOL(pl.LightningModule):
                 raise Exception("Invalid integration method.")
 
             loss = self.criterion((z0, p0), (z1, p1))
-            self.log('train_loss_ssl', loss)
             
         else:
             #(x0, x1), (id0, id1) = batch
@@ -149,6 +148,8 @@ class BYOL(pl.LightningModule):
             # TODO: symmetrize the outputs of byol and calculate the loss
             loss = self.criterion((z0, p0), (z1, p1))
             self.log('train_loss_ssl', loss)
+        
+        self.log('train_loss', loss)
         return loss
     
     def predict(self, x):

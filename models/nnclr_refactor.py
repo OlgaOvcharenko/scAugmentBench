@@ -170,7 +170,7 @@ class NNCLR(pl.LightningModule):
             z1 = self.memory_bank(z1, update=True)
             # TODO: symmetrize the loss?
             loss = 0.5 * (self.criterion(z0, p1) + self.criterion(z1, p0))
-        
+        self.log('train_loss', loss)
         return loss
 
     def configure_optimizers(self):
