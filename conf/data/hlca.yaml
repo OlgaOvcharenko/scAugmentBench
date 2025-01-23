@@ -1,5 +1,5 @@
 defaults:
   - data.yaml
 
-data_path: "../own_model/CLAIRE-data/HLCACore"
+data_path: "HLCACore"
 dname: "HLCA"
