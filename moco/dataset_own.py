@@ -178,16 +178,7 @@ class ClaireDataset(Dataset):
                 self.augment_set.append(partial(tacna_naive, alpha=alpha, gene_indices=gene_indices, signature_df=signature_df))
             else:
                 raise ValueError("Unrecognized augment operation")
-            """elif ai=='tacna-geo':
-                gene_indices = {}
-                signature_df = pd.read_csv("../TACNA_GEO.csv")
-                num_signatures = 101
-                gene_names = pd.read_csv("../Wang_unique_gene_symbols.csv")["Gene symbol"]
-                for gene_name in gene_names:
-                    k = np.argwhere(self.gname == gene_name)
-                    gene_indices[gene_name] = k
-                self.augment_set.append(partial(cna_naive, alpha=alpha, gene_indices=gene_indices, signature_df=signature_df,
-                                                num_signatures=num_signatures))"""
+            
         if self.verbose:
             print('Defined ops: ', self.augment_op_names)
 
@@ -204,7 +195,6 @@ class ClaireDataset(Dataset):
             #self.load_anchors(anchor_path)
             self.getMnnDict()
             self.exclude_sampleWithoutMNN(exclude_fn)
-            # TODO: Remove??
             self.computeKNN(knn)
             # DEV-INFO: returns pd DataFrame which gives the sampling probabilities.
             self.probas = self.compute_batch_probabilities(self.adata, key="X_umap")
@@ -389,15 +379,7 @@ class ClaireDataset(Dataset):
             tuple_list = g.to_tuple_list()
 
             anchors = pd.DataFrame(tuple_list, columns=['cell1', 'cell2'])
-
-            # anchors = computeAnchors(X, batch_label, cname, gname, k_anchor=k_anchor, filtering=filtering)
             print(f'Anchors-length: {len(anchors)}')
-            """
-            TODO: The code below is likely not required. (??)
-            anchors.cell1 = anchors.cell1_name.apply(lambda x: self.name2idx[x])
-            anchors.cell2 = anchors.cell2_name.apply(lambda x: self.name2idx[x])
-            print(f'Pairs-length: {len(anchors)}')
-            """
             pairs = np.array(anchors[['cell1', 'cell2']])
 
             self.pairs = pairs
@@ -576,43 +558,20 @@ class ClaireDataset(Dataset):
             celltype = self.clabel_encoder[self.type_label[i]]
         else:
             celltype = None
-        #print(batch)
-
-        # all the story starts from mnn
         pos_anchors = self.mnn_dict[i]
 
         probas = self.probas.loc[self.batch_label[i]][self.batch_label[pos_anchors]].values
-        """print(f"Pos. anchors are from batches {self.batch_label[pos_anchors]}")
-        print(f"Probabilities: {probas}")"""
-
-        # augment self <-- in this code, this is not the case...!!!
-        # TODO: When using bbknn approach, don't need positive knn pairs from own batch.!! TODO TODO TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        """if self.bbknn_mode:
-            self.nns = [[] for i in range(self.n_sample)]"""
-        
-        # TODO: is i always 0 now???? Or only when bbknn-fair??? Or what??
-        #ni = [i] if len(self.nns[i]) == 0 else np.random.choice(self.nns[i], size=1)
-        #DEV-INFO: Remove any information of cells within batch! This can be adapted with some random augmentations to give two views and not just one!
         ni = [i]
         x_n = self.X[ni].A#.squeeze()
         x_aug = augment_positive(self.augment_set, x, x_n).squeeze()  # augment x with knn
 
-        # augmenting one of x's positives
         pi = np.random.choice(pos_anchors, p=torch.nn.Softmax(dim=0)(torch.tensor(probas))) if len(pos_anchors)>0 else i
-        """
-        probas = self.probas.loc[self.batch_label[i]][self.batch_label[self.nns[pi]]]
-        print(self.batch_label[self.nns[pi]])
-        #### !!!! USE mnn_dict, not self.nns!!
-        """
         x_p = self.X[pi].A.squeeze()
-        #p_ni = pi if len(self.nns[pi])==0 else np.random.choice(self.nns[pi])
         
         p_ni = np.random.choice(self.nns[pi], size=1, replace=False) if len(self.nns[pi]) > 0 else [pi]
-        #print(f"Neighbor batches: {list(self.batch_label[p_ni])}")
         x_p_ni = self.X[p_ni].A#.squeeze()
         x_p_aug = augment_positive(self.augment_set, x_p, x_p_ni).squeeze()
 
-        # ADDED information about the origin-batch.
         return [x_aug.astype('float32'), x_p_aug.astype('float32')], [i, pi]#, batch, celltype
 
     def getValItem(self, i):
@@ -629,14 +588,6 @@ class ClaireDataset(Dataset):
 
 # utils
 def get_mnn_graph(n_cells, anchors):
-    # sparse Mnn graph
-    # mnn_graph = sps.csr_matrix((np.ones(anchors.shape[0]), (anchors['cell1'], anchors['cell2'])),
-    #                             dtype=np.int8)
-
-    # # create a sparse identy matrix
-    # dta, csr_ind = np.ones(n_cells,), np.arange(n_cells)
-    # I = sps.csr_matrix((dta, (csr_ind, csr_ind)), dtype=np.int8)  # identity_matrix
-
     # mnn_list for all cells
     mnn_dict = defaultdict(list)
     for r,c in anchors:   
@@ -682,17 +633,9 @@ def binary_switch_mv(x, x_p, alpha):
         x_new[indices[k]] = x_p[k,indices[k]]
         x[indices[k]] = 0
     x_new = x + x_new
-    """for k in range(len(x_p)):
-        p_other[indices[k]] = 1
-        other += x_p[k] * p_other
-        p_orig -= p_other
-        p_other.fill(0)
-    x *= p_orig"""
     return x_new #x + other
 
 def cna_naive(x, x_p, alpha, gene_indices, signature_df, num_signatures):
-    #np.random.randint(2, size=num_signatures)
-    # choose random signature
     i = np.random.randint(1, num_signatures+1)
     # choose which genes to change
     sig = signature_df[f"Gene.{i}"]
@@ -702,116 +645,23 @@ def cna_naive(x, x_p, alpha, gene_indices, signature_df, num_signatures):
     change = np.ones(len(x))
     for gname, j in zip(sig, range(len(sig))):
         change[gene_indices[gname]] = p[j]
-    #x = (x + np.random.randint(2)) * bernou_p + x_p * (1-bernou_p)
     lamda = np.random.uniform(alpha, 1.)  # [alpha, 1.]
     x = lamda * x * change + (1 - lamda) * x_p * change
     return x
 
 def tacna_naive(x, x_p, alpha, gene_indices, signature_df):
-    #np.random.randint(2, size=num_signatures)
-    # choose the strength of the augmentations
     factor = np.random.normal(loc=1.2, scale=0.2)
-    # choose which genes to augment
     bernou_p = bernoulli.rvs(alpha, size=len(signature_df))
-    # TODO: get the current cnv and then amplify the directionality of the CNA
     degree = signature_df["Degree of TACNA"]
     p = bernou_p * factor * degree
     change = np.ones(len(x))
     for gname, j in zip(list(signature_df['Gene symbol']), range(len(signature_df))):
         change[gene_indices[gname]] = p[j]
-    #x = (x + np.random.randint(2)) * bernou_p + x_p * (1-bernou_p)
     lamda = np.random.uniform(alpha, 1.)  # [alpha, 1.]
     x = lamda * x * change + (1 - lamda) * x_p * change
     return x
 
-
-"""
-def build_mask(masked_percentage, gene_num):
-    mask = np.concatenate([np.ones(int(gene_num * masked_percentage), dtype=bool), 
-                           np.zeros(gene_num - int(gene_num * masked_percentage), dtype=bool)])
-    np.random.shuffle(mask)
-    return mask
-
-def RandomCrop(cell_profile, crop_percentage=0.8):
-    mask = build_mask(crop_percentage)
-    cell_profile = cell_profile[mask]
-    gene_num = len(cell_profile)
-    dataset = self.dataset[:,mask]
-
-def random_mask(self, 
-                    mask_percentage: float = 0.15, 
-                    apply_mask_prob: float = 0.5):
-
-        s = np.random.uniform(0,1)
-        if s<apply_mask_prob:
-            # create the mask for mutation
-            mask = self.build_mask(mask_percentage)
-            
-            # do the mutation with prob
-        
-            self.cell_profile[mask] = 0
-
-
-
-def random_gaussian_noise(self, 
-                              noise_percentage: float=0.2, 
-                              sigma: float=0.5, 
-                              apply_noise_prob: float=0.3):
-
-        s = np.random.uniform(0,1)
-        if s<apply_noise_prob:
-            # create the mask for mutation
-            mask = self.build_mask(noise_percentage)
-            
-            # create the noise
-            noise = np.random.normal(0, 0.5, int(self.gene_num*noise_percentage))
-            
-            # do the mutation (maybe not add, simply change the value?)
-            self.cell_profile[mask] += noise
-
-
-def random_swap(self,
-                    swap_percentage: float=0.1,
-                    apply_swap_prob: float=0.5):
-
-        ##### for debug
-        #     from copy import deepcopy
-        #     before_swap = deepcopy(cell_profile)
-        s = np.random.uniform(0,1)
-        if s<apply_swap_prob:
-            # create the number of pairs for swapping 
-            swap_instances = int(self.gene_num*swap_percentage/2)
-            swap_pair = np.random.randint(self.gene_num, size=(swap_instances,2))
-            
-            # do the inner crossover with p
-        
-            self.cell_profile[swap_pair[:,0]], self.cell_profile[swap_pair[:,1]] = \
-                self.cell_profile[swap_pair[:,1]], self.cell_profile[swap_pair[:, 0]]
-
-def instance_crossover(self,
-                           cross_percentage: float=0.25,
-                           apply_cross_prob: float=0.4):
-        
-        # it's better to choose a similar profile to crossover
-        
-        s = np.random.uniform(0,1)
-        if s<apply_cross_prob:
-            # choose one instance for crossover
-            cross_idx = np.random.randint(self.cell_num)
-            cross_instance = self.dataset[cross_idx]
-            
-            # build the mask
-            mask = self.build_mask(cross_percentage)
-            
-            # apply instance crossover with p
-            
-            tmp = cross_instance[mask].copy()
-        
-            cross_instance[mask], self.cell_profile[mask]  = self.cell_profile[mask], tmp
-"""
-
 def augment_positive(ops, x, x_p):
-    # op_i = np.random.randint(0, 3)
     if len(ops)==0:  # if ops is empty, return x
         return x
 
@@ -840,8 +690,7 @@ def print_KnnInfo(nns, type_label, verbose=0):
         knn_ratio = ti == tl[nn]
         knn_ratio = np.mean(knn_ratio)
         return knn_ratio
-
-    # corr_ratio_per_sample = np.apply_along_axis(sampleWise_knnRatio, axis=1, arr=nns)
+    
     if isinstance(nns, defaultdict):
         corr_ratio_per_sample = []
         for k,v in nns.items():

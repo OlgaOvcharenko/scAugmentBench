@@ -126,9 +126,8 @@ def load_data_multimodal(config) -> sc.AnnData:
 def reset_random_seeds(seed):
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     random.seed(seed)
-    #os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     np.random.seed(seed)
-    # Old # No determinism as nn.Upsample has no deterministic implementation
+    
     torch.use_deterministic_algorithms(True)
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)

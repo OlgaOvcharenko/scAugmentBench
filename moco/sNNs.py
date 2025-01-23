@@ -10,7 +10,6 @@ import scipy.sparse as sps
 from itertools import product
 from moco.NNs import reduce_dimensionality
 
-# 把Seurat的FindIntegrationAnchors 翻译了一遍，几乎没有改动
 SCALE_BEFORE = True
 EPS = 1e-12
 VERBOSE = False
@@ -33,8 +32,6 @@ def pls(x, y, num_cc):
     ds = [d[i, i] for i in range(0, 30)]
     return u, v, ds
 
-
-#' scale each features of X, axis=0
 def scale2(x):
     # y = preprocessing.scale(x)  # scale each col separately
     x_mean = x.mean(axis=0)
@@ -43,9 +40,6 @@ def scale2(x):
 
     return y
 
-#' @param num.cc Number of canonical vectors to calculate
-#' @param seed.use Random seed to set.
-#' @importFrom svd1
 def runcca(data1, data2, num_cc=20, scale_before=SCALE_BEFORE):
     random.seed(42)
 
@@ -133,24 +127,6 @@ def findNN(data1, data2, k):
     nnba = NN(data=data1, query=data2, k=k)
     return nnab, nnba
 
-# def NN(data, k, query=None):
-#     tree = KDTree(data)
-#     if query is None:
-#         query = data
-#     dist, ind = tree.query(query, k)
-#     return dist, ind
-# def findNN(cell_embedding, cells1, cells2, k):
-    # print("Finding nearest neighborhoods")
-    # embedding_cells1 = cell_embedding.loc[cells1, ]
-    # embedding_cells2 = cell_embedding.loc[cells2, ]
-    # nnaa = NN(embedding_cells1, k=k + 1)
-    # nnbb = NN(embedding_cells2, k=k + 1)
-    # nnab = NN(data=embedding_cells2, k=k, query=embedding_cells1)
-    # nnba = NN(data=embedding_cells1, k=k, query=embedding_cells2)
-    # return nnaa, nnab, nnba, nnbb, cells1, cells2
-
-
-
 def findMNN(neighbors, num):
     max_nn = np.array([neighbors[0].shape[1], neighbors[1].shape[1]])
     if ((num > max_nn).any()):
@@ -183,7 +159,7 @@ def findMNN(neighbors, num):
 #' @param dim Dimension to use
 #' @param numG Number of genes to return
 #' @return Returns a vector of top genes
-def topGenes(Loadings, dim, numG):                # 取与cca.dim正相关和负相关的前numG//2个gene
+def topGenes(Loadings, dim, numG):             
     data = Loadings[:, dim]
     num = numG//2
 

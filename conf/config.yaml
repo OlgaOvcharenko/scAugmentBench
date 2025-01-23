@@ -9,4 +9,4 @@ debug: false
 logging:
   project: scAugmentBench
   mode: offline
-  entity: tomap
+  entity: anonym

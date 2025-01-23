@@ -6,8 +6,6 @@ import numpy as np
 import scanpy as sc
 
 
-# TODO: Handle multi-run case, as was done in the master thesis.
-# WARNING! At the moment, only the single-run-case can be handled.
 """
 This class provides a wrapper for our evaluation.
 
@@ -18,14 +16,11 @@ class EvaluationModule():
     def __init__(self, db, adata, model_indices, augmentation_name=None):
         self.ad = adata
         self.num_models = len(model_indices)
-        #embeddings = db.embeddings[model_indices]
         self.model_names = list(db.configs.iloc[model_indices]['model_name'])
         self.emb_keys = [db.configs.iloc[i]['model_name'] + f"-{db.configs.iloc[i]['run_i']}" for i in model_indices]
         print(self.emb_keys)
         for i in model_indices:
             self.ad.obsm[db.configs.iloc[i]['model_name'] + f"-{db.configs.iloc[i]['run_i']}"] = db.embeddings[i].toarray()
-            #self.ad.obsm[db.configs.iloc[i]['model_name']] = db.embeddings[i].toarray()
-            #emb_keys.append(db.configs.iloc[i]['model_name'])
         self.augname = db.augname
         self.dname = db.dname
 
@@ -47,8 +42,7 @@ class EvaluationModule():
             )
         bm.benchmark()
         a = bm.get_results(False, True)
-        self.results = a[:self.num_models]#len(self.db.configs)]
-        #train_metrics.index = pd.Index([e_id], name="Embedding")
+        self.results = a[:self.num_models]
 
     def unify_runs(self):
         q = self.display_table()
@@ -66,9 +60,7 @@ class EvaluationModule():
     
     def print_combined_latex_table(self):
         assert self.means is not None and self.stds is not None, "Must call .unify_runs() before printing unified tables."
-        # Combine means and stds into a single DataFrame with the format "mean ± std"
-        combined = self.means.sort_index().round(3).astype(str) + " ± " + self.stds.sort_index().round(3).astype(str)        
-        # Print the combined DataFrame in LaTeX format
+        combined = self.means.sort_index().round(3).astype(str) + " ± " + self.stds.sort_index().round(3).astype(str)  
         print("Metrics (Mean ± STD):")
         print(combined.to_latex(index=True, escape=False))
     
@@ -96,7 +88,3 @@ class EvaluationModule():
     def display_table(self):
         assert self.results is not None, "Results are missing. Must call run_evaluation() first."
         return self.results.round(3)
-
-
-#em = EvaluationModule(db, val_data, model_indices=[0,1])
-#a = AugCombiner("test_database", "NeftelMulti")

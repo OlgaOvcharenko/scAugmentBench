@@ -254,14 +254,6 @@ class ClaireDataset(Dataset):
 
 # utils
 def get_mnn_graph(n_cells, anchors):
-    # sparse Mnn graph
-    # mnn_graph = sps.csr_matrix((np.ones(anchors.shape[0]), (anchors['cell1'], anchors['cell2'])),
-    #                             dtype=np.int8)
-
-    # # create a sparse identy matrix
-    # dta, csr_ind = np.ones(n_cells,), np.arange(n_cells)
-    # I = sps.csr_matrix((dta, (csr_ind, csr_ind)), dtype=np.int8)  # identity_matrix
-
     # mnn_list for all cells
     mnn_dict = defaultdict(list)
     for r,c in anchors:   

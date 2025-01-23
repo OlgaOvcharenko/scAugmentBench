@@ -124,7 +124,7 @@ def plot_umap(adata, embedding, results_dir):
     return sc.pl.umap(adata, show=False, color=['CellType', 'batchlb'],)
 
 
-def collect_runs(project_root = "/local/home/tomap/scAugmentBench", dirname = "architecture-ablation",
+def collect_runs(project_root = "", dirname = "architecture-ablation",
                  dname = "ImmHuman", n_runs = 5):
     model_names = os.listdir(os.path.join(project_root, dirname, dname))
     
@@ -144,7 +144,7 @@ def collect_runs(project_root = "/local/home/tomap/scAugmentBench", dirname = "a
         std.to_csv(os.path.join(tmp, "std_result.csv"))
 
 
-def unify_table(project_root = "/local/home/tomap/scAugmentBench", dirname = "architecture-ablation",
+def unify_table(project_root = "", dirname = "architecture-ablation",
                 dname = "ImmHuman", n_runs = 5):
     model_names = os.listdir(os.path.join(project_root, dirname, dname))
     model_means = []
@@ -183,7 +183,7 @@ def scale_table(df):
     return df
 
 
-def get_bigger_table(project_root = "/local/home/tomap/scAugmentBench", dirname = "architecture-ablation",
+def get_bigger_table(project_root = "", dirname = "architecture-ablation",
                  dname = "ImmHuman"):
     root = os.path.join(project_root, dirname, dname)
     model_names = os.listdir(root)
@@ -232,7 +232,7 @@ def get_bigger_table(project_root = "/local/home/tomap/scAugmentBench", dirname 
 
 
 
-def get_best_params(project_root = "/local/home/tomap/scAugmentBench", dirname = "architecture-ablation",
+def get_best_params(project_root = "", dirname = "architecture-ablation",
                  dname = "ImmHuman", n_runs = 5):
     root = os.path.join(project_root, dirname, dname)
     model_names = os.listdir(root)

@@ -723,12 +723,7 @@ def prepare_Ji(data_root):
 
     # label_key = 'final_annotation'
 
-    adata = sc.read_h5ad(join(data_root, 'Ji_skin.h5ad'))  # read simulated dataset
-    
-    # /cluster/work/boeva/tomap/CLAIRE-data/Ji/Ji_skin.h5ad
-    # adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    # X is already sparse after preprocessingRNA function.
-    # X = adata.X.T # must be gene by cell TODO: true?
+    adata = sc.read_h5ad(join(data_root, 'Ji_skin.h5ad')) 
     adata = adata[adata.obs['phase']=="G1"]
     X = adata.layers['counts'].T
 
@@ -752,11 +747,6 @@ def prepare_Uhlitz(data_root):
     '''
     
     adata = sc.read_h5ad(join(data_root, 'uhlitz_S_G2M_removed.h5ad'))  # read simulated dataset
-    
-    # /cluster/work/boeva/tomap/CLAIRE-data/Ji/Ji_skin.h5ad
-    # adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    # X is already sparse after preprocessingRNA function.
-    # X = adata.X.T # must be gene by cell TODO: true?
     adata = adata[adata.obs['origin']=="tumor"]
     # adata = adata[adata.obs['phase']=="G1"]
     adata.layers['counts'] = adata.X
@@ -781,18 +771,7 @@ def prepare_Lee(data_root):
          cell_name: array of cell (barcodes) names
          df_meta:   metadata of dataset, columns include 'batchlb'(batch column), 'CellType'(optional)
     '''
-    
-    #adata = sc.read_h5ad(join(data_root, 'GBM_smallest_GSE154795.h5ad'))  # read simulated dataset
     adata = sc.read_h5ad(join(data_root, 'GBM_IMM_10X_GSE154795.h5ad'))  # read simulated dataset
-    
-    # /cluster/work/boeva/tomap/CLAIRE-data/Ji/Ji_skin.h5ad
-    # adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    # X is already sparse after preprocessingRNA function.
-    # X = adata.X.T # must be gene by cell TODO: true?
-
-    #adata = adata[adata.obs['origin']=="tumor"]
-    # adata = adata[adata.obs['phase']=="G1"]
-
     adata.layers['counts'] = adata.X
     X = adata.layers['counts'].T
 

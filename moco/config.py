@@ -4,10 +4,10 @@ import numpy as np
 class Config(object):
 
     # data directory root
-    data_root = '/local/home/tomap/own_model/CLAIRE-data'
+    data_root = 'XXXX'
 
     #args = get_args()
-    out_root = '/local/home/tomap/own_model/CLAIRE-original-outputs'
+    out_root = 'XXXX'
 
     # model configs
     n_hvgs = in_dim = 6000  # n_hvgs
