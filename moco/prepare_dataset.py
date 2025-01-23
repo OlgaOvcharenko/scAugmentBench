@@ -70,9 +70,6 @@ def prepare_PBMC_Full(data_root):
     cell_name = adata.obs_names.values
     df_meta = adata.obs[["batch", "CellType"]].copy()
 
-    # To unify technologies in PBMCFull, uncomment the line below.
-    # df_meta.obs['batch'] = [item[6:9] if item[6] == '1' else item[6:] for item in list(adata.obs['batch'])]
-
     df_meta["batchlb"] = df_meta["batch"].astype('category')
     df_meta["CellType"] = df_meta["CellType"].astype('category')
 
@@ -151,12 +148,8 @@ def prepare_MouseRetina(data_root):
     return sps_x, gene_name, cell_name, df_meta 
 
 def prepare_Simulation(data_root):
-    # data_root: /home/.../Data/dataset3/simul1_dropout_005_b1_500_b2_900
     batch_key = 'Batch'
     label_key = 'Group'
-
-    # manually switch to counts_all.txt
-    # ensure row is gene
     X = pd.read_csv(join(data_root, 'counts.txt'), sep='\t',header=0, index_col=0)  # row is cell
     X = X.T   # to gene
 
@@ -167,7 +160,6 @@ def prepare_Simulation(data_root):
     return X, X.index.values, X.columns.values, metadata
 
 def prepare_Lung(data_root):
-    # data_root: /home/.../Data/dataset3/simul1_dropout_005_b1_500_b2_900
     batch_key = 'batch'
     label_key = 'cell_type'
 
@@ -229,9 +221,7 @@ def prepare_Mixology(data_root):
 
     # ensure row is gene
     adata = sc.read_h5ad(join(data_root, 'sc_mixology.h5ad'))
-    adata = adata[:, adata.var.Selected.values.astype('bool')].copy()  # use selected hvg, 2000
-
-    # X = sps.csr_matrix(adata.layers['norm_data'].T)  # gene by cell
+    adata = adata[:, adata.var.Selected.values.astype('bool')].copy()  
     X = sps.csr_matrix(adata.X.T)  # gene by cell
 
     gene_name = adata.var_names
@@ -550,24 +540,7 @@ def prepare_Neftel(data_root):
          cell_name: array of cell (barcodes) names
          df_meta:   metadata of dataset, columns include 'batchlb'(batch column), 'CellType'(optional)
     '''
-    # The adata object read below contains:
-    #   -   the sample (27 in total; one seems to be missing - there should
-    #       be 28 as the study had 28 participants) => adata.obs['sample']
-    #   -   the assigned cancer-subtype-label => 4 labels => adata.obs['celltype']
-    #   -   the subclones; I'm guessing it's the subclones as discovered by hierarchical clustering 
-    #   -   on the inferred CNAs => adata.obs['subclones']
-    #   -   the phase of the cell => adata.obs['phase']; there are also obs['G2M_score'] and obs['S_score'].
-
-    # Aditionally it contains the inferred CNV's (obsm['X_cnv'])
-    # The counts are located in the layers['counts'] object. TODO: how can we check if the data is normalized?
-    # The max value in the counts array is 488071. This seems a lot for a normalized matrix..
-
-    # There are 6855 cells in the dataset. In the original there were >17K, but the authors dropped the non-cancerous
-    # cells, leaving roughly 6.5K cells (this fits).
     adata = sc.read_h5ad(join(data_root, 'neftel_ss2.h5ad'))
-    #adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    
-    # Filtering out cy cycling cells (G2M). TODO: Do the S-Phase cells also need to be filtered out? If not: use .concatenate(adata[adata.obs['phase']=="S"])
     adata = adata[adata.obs['phase']=="G1"]
     X = adata.layers['counts'].T
 
@@ -588,24 +561,7 @@ def prepare_Neftel_10X(data_root):
          cell_name: array of cell (barcodes) names
          df_meta:   metadata of dataset, columns include 'batchlb'(batch column), 'CellType'(optional)
     '''
-    # The adata object read below contains:
-    #   -   the sample (27 in total; one seems to be missing - there should
-    #       be 28 as the study had 28 participants) => adata.obs['sample']
-    #   -   the assigned cancer-subtype-label => 4 labels => adata.obs['celltype']
-    #   -   the subclones; I'm guessing it's the subclones as discovered by hierarchical clustering 
-    #   -   on the inferred CNAs => adata.obs['subclones']
-    #   -   the phase of the cell => adata.obs['phase']; there are also obs['G2M_score'] and obs['S_score'].
-
-    # Aditionally it contains the inferred CNV's (obsm['X_cnv'])
-    # The counts are located in the layers['counts'] object. TODO: how can we check if the data is normalized?
-    # The max value in the counts array is 488071. This seems a lot for a normalized matrix..
-
-    # There are 6855 cells in the dataset. In the original there were >17K, but the authors dropped the non-cancerous
-    # cells, leaving roughly 6.5K cells (this fits).
     adata = sc.read_h5ad(join(data_root, 'neftel_10x.h5ad'))
-    #adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    
-    # Filtering out cy cycling cells (G2M). TODO: Do the S-Phase cells also need to be filtered out? If not: use .concatenate(adata[adata.obs['phase']=="S"])
     adata = adata[adata.obs['phase']=="G1"]
     X = adata.layers['counts'].T
 
@@ -626,24 +582,7 @@ def prepare_Neftel_ss2_10X(data_root):
          cell_name: array of cell (barcodes) names
          df_meta:   metadata of dataset, columns include 'batchlb'(batch column), 'CellType'(optional)
     '''
-    # The adata object read below contains:
-    #   -   the sample (27 in total; one seems to be missing - there should
-    #       be 28 as the study had 28 participants) => adata.obs['sample']
-    #   -   the assigned cancer-subtype-label => 4 labels => adata.obs['celltype']
-    #   -   the subclones; I'm guessing it's the subclones as discovered by hierarchical clustering 
-    #   -   on the inferred CNAs => adata.obs['subclones']
-    #   -   the phase of the cell => adata.obs['phase']; there are also obs['G2M_score'] and obs['S_score'].
-
-    # Aditionally it contains the inferred CNV's (obsm['X_cnv'])
-    # The counts are located in the layers['counts'] object. TODO: how can we check if the data is normalized?
-    # The max value in the counts array is 488071. This seems a lot for a normalized matrix..
-
-    # There are 6855 cells in the dataset. In the original there were >17K, but the authors dropped the non-cancerous
-    # cells, leaving roughly 6.5K cells (this fits).
     adata = sc.read_h5ad(join(data_root, 'Neftel_10X_ss2.h5ad'))
-    #adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    
-    # Filtering out cy cycling cells (G2M). TODO: Do the S-Phase cells also need to be filtered out? If not: use .concatenate(adata[adata.obs['phase']=="S"])
     adata = adata[adata.obs['phase']=="G1"]
     X = adata.layers['counts'].T
 
@@ -667,10 +606,6 @@ def prepare_ImmuneAtlas(data_root):
     '''
     
     adata = sc.read_h5ad(join(data_root, 'Conde.h5ad'))
-    #adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    
-    # Filtering out cy cycling cells (G2M). TODO: Do the S-Phase cells also need to be filtered out? If not: use .concatenate(adata[adata.obs['phase']=="S"])
-    #adata = adata[adata.obs['phase']=="G1"]
 
     X = adata.raw.X.T
 
@@ -694,10 +629,6 @@ def prepare_HCLA_Core(data_root):
     '''
     
     adata = sc.read_h5ad(join(data_root, 'Luecken_Core.h5ad'))
-    #adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    
-    # Filtering out cy cycling cells (G2M). TODO: Do the S-Phase cells also need to be filtered out? If not: use .concatenate(adata[adata.obs['phase']=="S"])
-    #adata = adata[adata.obs['phase']=="G1"]
 
     X = adata.raw.X.T
 
@@ -724,11 +655,6 @@ def prepare_Ji(data_root):
     # label_key = 'final_annotation'
 
     adata = sc.read_h5ad(join(data_root, 'Ji_skin.h5ad'))  # read simulated dataset
-    
-    # /cluster/work/boeva/tomap/CLAIRE-data/Ji/Ji_skin.h5ad
-    # adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    # X is already sparse after preprocessingRNA function.
-    # X = adata.X.T # must be gene by cell TODO: true?
     adata = adata[adata.obs['phase']=="G1"]
     X = adata.layers['counts'].T
 
@@ -752,19 +678,12 @@ def prepare_Uhlitz(data_root):
     '''
     
     adata = sc.read_h5ad(join(data_root, 'uhlitz_S_G2M_removed.h5ad'))  # read simulated dataset
-    
-    # /cluster/work/boeva/tomap/CLAIRE-data/Ji/Ji_skin.h5ad
-    # adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    # X is already sparse after preprocessingRNA function.
-    # X = adata.X.T # must be gene by cell TODO: true?
     adata = adata[adata.obs['origin']=="tumor"]
-    # adata = adata[adata.obs['phase']=="G1"]
     adata.layers['counts'] = adata.X
     X = adata.layers['counts'].T
 
     gene_name = adata.var_names.values
     cell_name = adata.obs_names.values
-    # TODO: get celltypes!
     df_meta = adata.obs[["patient", "celltype"]].copy()
 
     df_meta["batchlb"] = df_meta["patient"].astype('category')
@@ -781,24 +700,13 @@ def prepare_Lee(data_root):
          cell_name: array of cell (barcodes) names
          df_meta:   metadata of dataset, columns include 'batchlb'(batch column), 'CellType'(optional)
     '''
-    
-    #adata = sc.read_h5ad(join(data_root, 'GBM_smallest_GSE154795.h5ad'))  # read simulated dataset
     adata = sc.read_h5ad(join(data_root, 'GBM_IMM_10X_GSE154795.h5ad'))  # read simulated dataset
-    
-    # /cluster/work/boeva/tomap/CLAIRE-data/Ji/Ji_skin.h5ad
-    # adata = preprocessing_rna(adata, n_top_features=2000, is_hvg=True, batch_key='Batch')
-    # X is already sparse after preprocessingRNA function.
-    # X = adata.X.T # must be gene by cell TODO: true?
-
-    #adata = adata[adata.obs['origin']=="tumor"]
-    # adata = adata[adata.obs['phase']=="G1"]
 
     adata.layers['counts'] = adata.X
     X = adata.layers['counts'].T
 
     gene_name = adata.var_names.values
     cell_name = adata.obs_names.values
-    # TODO: get celltypes!
     df_meta = adata.obs[["ID", "annotation_minor"]].copy()
 
     df_meta["batchlb"] = df_meta["ID"].astype('category')
@@ -814,31 +722,14 @@ def prepare_NewDataset(data_root):
          cell_name: array of cell (barcodes) names
          df_meta:   metadata of dataset, columns include 'batchlb'(batch column), 'CellType'(optional)
     '''
-    # ===========
-    # example
-
-    # batch_key = 'batch'
-    # label_key = 'final_annotation'
-
-    # adata = sc.read_h5ad(join(data_root, 'Immune_ALL_human.h5ad'))  # read ImmHuman dataset
-    # X = sps.csr_matrix(adata.layers['counts'].T)  # gene by cell
-
-    # gene_name = adata.var_names.values
-    # cell_name = adata.obs_names.values
-    # df_meta = adata.obs[[batch_key, label_key]].copy()
-
-    # df_meta[configs.batch_key] = df_meta[batch_key].astype('category')
-    # df_meta[configs.label_key] = df_meta[label_key].astype('category')
-
-    # return X, gene_name, cell_name, df_meta
-    # ===========
+    pass
 
 def prepare_ImmHuman_our(data_root):
     batch_key = 'batch'
     label_key = 'CellType'
 
     # ensure row is gene
-    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/ImmHuman.h5ad')
+    adata = sc.read_h5ad('ImmHuman.h5ad')
 
     X = sps.csr_matrix(adata.layers['counts'].T)  # gene by cell
 
@@ -856,7 +747,7 @@ def prepare_PBMC_our(data_root):
     label_key = 'CellType'
 
     # ensure row is gene
-    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/PBMC.h5ad')
+    adata = sc.read_h5ad('PBMC.h5ad')
 
     X = adata.layers['counts'].A.T  # gene by cell
 
@@ -874,7 +765,7 @@ def prepare_Pancreas_our(data_root):
     label_key = 'celltype'
 
     # ensure row is gene
-    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/Pancreas.h5ad')
+    adata = sc.read_h5ad('Pancreas.h5ad')
 
     X = adata.layers['counts'].A.T  # gene by cell
 
@@ -892,7 +783,7 @@ def prepare_ImmuneAtlas_our(data_root):
     label_key = 'cell_type'
 
     # ensure row is gene
-    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/ImmuneAtlas.h5ad')
+    adata = sc.read_h5ad('ImmuneAtlas.h5ad')
 
     X = adata.layers['counts'].A.T  # gene by cell
 
@@ -910,7 +801,7 @@ def prepare_MCA_our(data_root):
     label_key = 'CellType'
 
     # ensure row is gene
-    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/MCA.h5ad')
+    adata = sc.read_h5ad('MCA.h5ad')
 
     X = adata.layers['counts'].A.T  # gene by cell
 
@@ -928,7 +819,7 @@ def prepare_Lung_our(data_root):
     label_key = 'cell_type'
 
     # ensure row is gene
-    adata = sc.read_h5ad('/cluster/home/oovcharenko/Olga_Data/Lung.h5ad')
+    adata = sc.read_h5ad('Lung.h5ad')
 
     X = adata.layers['counts'].A.T  # gene by cell
 
@@ -946,16 +837,11 @@ def prepare_dataset(data_dir):
     dataset_name = data_dir.split('/')[-1]
     func_dict = {
                     'MouseCellAtlas': prepare_MouseCellAtlas, 
-                    # 'Pancreas': prepare_Pancreas, 
-                    # 'PBMC': prepare_PBMC,
                     'Neurips_cite_multimodal': prepare_Neurips_cite_Multimodal,
                     'PBMC_multimodal': prepare_PBMC_Multimodal, 
                     'PBMCFull': prepare_PBMC_Full, 
                     'CellLine': prepare_CellLine, 
                     'MouseRetina': prepare_MouseRetina, 
-                    # 'Lung': prepare_Lung,
-                    # 'ImmHuman': prepare_ImmHuman,
-                    # 'ImmuneAtlas': prepare_ImmuneAtlas,
                     'Muris': prepare_Muris,
                     'Neocortex': prepare_Neo,
                     'Muris_2000': prepare_Muris_2000,
@@ -976,7 +862,6 @@ def prepare_dataset(data_dir):
                     'Lee': prepare_Lee,
                     'HLCACore': prepare_HCLA_Core,
                     'new_dataset': prepare_NewDataset,
-
                     'ImmHuman': prepare_ImmHuman_our,
                     'Pancreas': prepare_Pancreas_our,
                     'ImmuneAtlas': prepare_ImmuneAtlas_our,
@@ -985,5 +870,4 @@ def prepare_dataset(data_dir):
                     'PBMC': prepare_PBMC_our,
     }
 
-    # dataset 3 
     return func_dict.get(dataset_name, prepare_Simulation)(data_dir)
