@@ -26,7 +26,7 @@ _BATCH_METRICS = BatchCorrection(graph_connectivity=True,
                                  )
 
 def get_args():
-    parser = argparse.ArgumentParser(description='CONCERTO Batch Correction.')
+    parser = argparse.ArgumentParser(description='scVI Batch Correction.')
 
     parser.add_argument('--data', type=str, required=True,
                         help='Dataset (Simulated/Not)')
@@ -52,15 +52,6 @@ def run_scVI(adata, batch_key, cell_type):
     SCVI_LATENT_KEY = "X_scVI"
     adata.obsm[SCVI_LATENT_KEY] = model.get_latent_representation()
 
-    # sc.pp.neighbors(adata, use_rep=SCVI_LATENT_KEY)
-    # sc.tl.leiden(adata)
-
-    # SCVI_MDE_KEY = "X_scVI_MDE"
-    # adata.obsm[SCVI_MDE_KEY] = scvi.model.utils.mde(adata.obsm[SCVI_LATENT_KEY], accelerator="cpu")
-
-    # sc.pl.embedding(adata, basis=SCVI_MDE_KEY, color=["batch", "leiden"], frameon=False, ncols=1,)
-    # sc.pl.embedding(adata, basis=SCVI_MDE_KEY, color=["cell_type"], frameon=False, ncols=1)
-
     return adata
 
 def evaluate_model(adata, batch_key, cell_type_label):
@@ -81,7 +72,7 @@ def evaluate_model(adata, batch_key, cell_type_label):
     return results
 
 args = get_args()
-adata_path = args.data # "/cluster/home/oovcharenko/Olga_Data/ImmuneAtlas.h5ad"
+adata_path = args.data 
 epochs = args.epoch
 batch_key = args.batch
 cell_type = args.celltype

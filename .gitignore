@@ -3,37 +3,19 @@ __pycache__
 ablation-db-*
 lightning_logs
 *.csv
-
 actual_data
 .DS_Store
-moco/__pycache__
-data/__pycache__
-models/__pycache__
-utils/__pycache__
-
-*__pycache__*
-*/__pycache__
 figures
 ablation-db
-exp copy
-
 .DS_Store
-Figure_1.png
-
 tables
 results
 actual_data/
-
-plots_thesis/
-plotting_utils/
 plots/
-
 logs/
 temperature/
-
 projection/
 unimodal_projection.log
 unimodal_temp.log
 qr/
-projection copy/
 rerun_unimodal_100/
