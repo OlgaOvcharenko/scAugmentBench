@@ -20,7 +20,6 @@ def run_scib(tmp, seed, adata):
 
 
 parser = argparse.ArgumentParser(description='Re-Evaluate with SCIB')
-# "/local/home/tomap/scAugmentBench/augmentation-ablation-vol9/ImmHuman"
 parser.add_argument('--dname_root', default='./', type=str,
                         help='Where to evaluate.')
 parser.add_argument('--dataset', default='immune', type=str,
